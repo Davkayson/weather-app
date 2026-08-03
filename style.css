@@ -116,81 +116,128 @@ header {
   display: flex;
   gap: 0.5rem;
   border-radius: 0.3rem;
+  cursor: pointer;
 }
 
 .units-text {
   color: var(--Neutral-0);
 }
 
-.dropdown-icon,
-.dropdown-toggle {
-  transition: transform 0.7s ease;
-  cursor: pointer;
-}
-
-.units-dropdown:hover .dropdown-menu {
-  display: block;
+.dropdown-toggle .dropdown-icon {
+  /* transition: transform 0.7s ease; */
+  transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .units-dropdown:hover .dropdown-toggle .dropdown-icon {
   transform: rotate(180deg);
 }
+
 .dropdown-bridge {
   position: absolute;
   width: 100%;
   top: 30px;
   right: 0;
-  height: 50px;
-  /* z-index: 9; */
+  height: 20px;
 }
 
 .dropdown-menu {
-  display: none;
+  padding: 1rem;
+  opacity: 0;
+  visibility: hidden;
+  display: flex;
+  flex-direction: column;
   position: absolute;
   top: 40px;
   right: 0px;
   background-color: var(--Neutral-700);
   border-radius: 0.3rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
   width: 210px;
-  z-index: 10;
-  /* transform: translateY(10px); */
+  z-index: 100;
+  transform: translateY(-10px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease,
+    visibility 0.5s ease;
+  transform: translateY(10px);
+}
+
+.units-dropdown:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .dropdown-section {
+  /* padding: 0.8rem; */
   /* border: 1px solid white; */
-  padding: 0.8rem;
+  margin-bottom: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  /* border-bottom: 0.5px solid var(--Neutral-300); */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.dropdown-section:first-child {
+  border-bottom: none;
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.dropdown-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .Imperial {
-  background-color: var(--Neutral-600);
+  background-color: var(--Neutral-700);
   color: var(--Neutral-0);
-  width: 100%;
-  padding: 0.3rem;
   border-radius: 0.3rem;
   cursor: pointer;
   text-align: left;
+  padding: 0.5rem;
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+
+.Imperial:hover {
+  background-color: var(--Neutral-800);
+  color: var(--Neutral-0);
 }
 
 .dropdown-title {
   display: block;
-  color: var(--Neutral-200);
-  margin-bottom: 1rem;
+  color: var(--Neutral-300);
   font-size: 0.8rem;
+  padding: 0.5rem;
+  font-weight: 600;
+  padding-top: 0;
 }
 
 .dropdown-label.active {
   background-color: var(--Neutral-800);
-  padding: 0.5rem 0.4rem;
-  margin-bottom: 0.8rem;
   border-radius: 0.3rem;
-  /* text-align: left; */
+  padding: 0.5rem;
 }
 
 .dropdown-label {
   display: flex;
   justify-content: space-between;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 0.3rem;
+  transition:
+    background-color 0.4s ease,
+    color 0.4s ease;
+}
 
-  /* align-items: center; */
+.dropdown-label:hover {
+  background-color: var(--Neutral-800);
+  color: var(--Neutral-0);
 }
 
 .sub-heading {
@@ -224,6 +271,7 @@ header {
   padding: 0.5rem 6rem 0.5rem 3.77rem;
   width: 100%;
   font-size: 1.25rem;
+  border-radius: 0.3rem;
 }
 
 .search_button {
@@ -232,6 +280,7 @@ header {
   padding: 0.5rem 0;
   font-size: 1.25rem;
   cursor: pointer;
+  border-radius: 0.3rem;
 }
 
 .current_forecast {
@@ -382,34 +431,21 @@ header {
   gap: 0.5rem;
   padding: 0.5rem;
   border-radius: 0.3rem;
+  cursor: pointer;
 }
 
 .day-text {
   color: var(--Neutral-0);
 }
 
+.dropdown-icon,
 .hourly-dropdown-toggle {
   transition: transform 0.7s ease;
   cursor: pointer;
 }
 
-.hourly-dropdown:hover .hourly-dropdown-menu {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0px);
-}
-
 .hourly-dropdown:hover .hourly-dropdown-toggle .dropdown-icon {
   transform: rotate(180deg);
-}
-
-.hourly-dropdown:hover .dropdown-icon {
-  transform: rotate(180deg);
-}
-
-.dropdown-icon,
-.hourly-dropdown .dropdown-icon {
-  transition: transform 0.3s;
 }
 
 .hourly-dropdown-bridge {
@@ -418,47 +454,62 @@ header {
   top: 100%;
   width: 100%;
   height: 16px;
-  z-index: 9;
+  /* z-index: 9; */
 }
 
 .hourly-dropdown-menu {
+  opacity: 0;
+  visibility: hidden;
   min-width: 200px;
-  display: flex;
-  flex-direction: column;
   box-shadow: rgba(0, 0, 0, 0.35) 0px 8px 32px;
-  padding: 0.5rem 0px;
+  padding: 0.8rem 0px;
   gap: 0.1rem;
-
+  border: 2px solid var(--Neutral-600);
   position: absolute;
   right: 0px;
-  top: 130%;
-  background-color: var(--neutral-800);
+  top: 30px;
+  background-color: var(--Neutral-800);
   z-index: 10;
   border-radius: 0.8rem;
-  border: 1px solid var(--neutral-600);
   transition:
-    opacity 0.25s,
-    transform 0.25s;
+    opacity 0.5s ease,
+    transform 0.5s ease,
+    visibility 0.5s ease;
+  transform: translateY(10px);
+}
+
+.hourly-dropdown:hover .hourly-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translate Y(0);
+}
+
+.weekday-item-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
 }
 
 .weekday-item {
-  color: var(--neutral-0);
   font-size: 0.9rem;
   text-align: left;
   cursor: pointer;
   position: relative;
   z-index: 1;
-  background: none;
-  border-width: medium;
-  border-style: none;
-  border-color: currentcolor;
-  border-image: none;
-  padding: 0.6rem 1rem;
+  background-color: var(--Neutral-800);
+  color: var(--Neutral-0);
   border-radius: 0.3rem;
   outline: none;
-  margin: 0px 0.5rem;
-  transition: background 0.2s;
-  overflow: hidden;
+  margin: 0px 1rem;
+  transition:
+    background-color 0.8s ease,
+    color 0.8s ease;
+  padding: 0.4rem 0.8rem;
+}
+
+.weekday-item:hover {
+  background-color: var(--Neutral-700);
+  color: white;
 }
 
 .weekday-item.active {
@@ -467,7 +518,6 @@ header {
 
 .hourly_forecast_time {
   background-color: var(--Neutral-700);
-  padding: 0.5rem;
   border-radius: 0.5rem;
 }
 
@@ -501,12 +551,7 @@ header {
   .forecast_img_container {
     background-image: url('/assets/images/bg-today-large.svg');
     background-repeat: no-repeat;
-    /* background-size: 1rem; */
-    /* color: var(--Neutral-200); */
-    /* background-color: var(--Neutral-600); */
     padding: 2.5rem;
-    /* width: 100%; */
-    /* font-size: 1.25rem; */
   }
 
   .current_forecast_text {
@@ -553,12 +598,13 @@ header {
   .sub-heading {
     padding: 0;
   }
+
   .search_container {
     margin-bottom: 2rem;
   }
   .search {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(9, 1fr);
   }
 
   .empty_grid_search {
@@ -566,7 +612,7 @@ header {
   }
 
   .input-text {
-    grid-column: 3 / 5;
+    grid-column: 3 / 7;
   }
 
   .desktop-grid {
