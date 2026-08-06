@@ -18,17 +18,6 @@ document.addEventListener('click', (event) => {
   }
 });
 
-// dropdownBtn.addEventListener('click', (e) => {
-//   const isOpen = dropdownContainer.classList.toggle('is-open');
-//   dropdownBtn.setAttribute('aria-expanded', isOpen)
-// });
-
-// document.addEventListener('click', (e) => {
-//   if (!e.target.closest('.units-dropdown')) {
-//     dropdownContainer.classList.remove('is-open');
-//     dropdownBtn.setAttribute('aria-expanded', 'false');
-//   }
-// });
 
 
 function setupDropdown(btnSelector, wrapperSelector) {

@@ -594,6 +594,11 @@ header {
     grid-column: 1 / 6;
   }
 
+  .search_button {
+    padding: 0;
+    width: 12vw;
+  }
+
   .forecast_img_container {
     background-image: url('/assets/images/bg-today-large.svg');
     background-repeat: no-repeat;
@@ -646,11 +651,17 @@ header {
   }
 
   .search_container {
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
   }
   .search {
     display: grid;
     grid-template-columns: repeat(9, 1fr);
+  }
+
+  .search_button {
+    padding: 0;
+    width: 8vw;
+    border-radius: 0.6rem;
   }
 
   .empty_grid_search {
@@ -659,6 +670,7 @@ header {
 
   .input-text {
     grid-column: 3 / 7;
+    border-radius: 0.6rem;
   }
 
   .desktop-grid {
