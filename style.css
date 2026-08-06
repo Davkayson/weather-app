@@ -84,11 +84,6 @@ p {
 .main_container {
   width: 90vw;
   margin: 2rem auto;
-
-  /* display: flex;
-  flex-direction: column;
-  align-items: center; */
-  /* gap: 3rem; */
 }
 
 header {
@@ -99,7 +94,6 @@ header {
 }
 
 .logo {
-  /* width: 8.56rem; */
   width: 80%;
   display: flex;
   justify-content: flex-start;
@@ -113,7 +107,9 @@ header {
 .dropdown-toggle {
   background-color: var(--Neutral-700);
   padding: 0.5rem;
+  padding-right: 0.8rem;
   display: flex;
+  align-items: center;
   gap: 0.5rem;
   border-radius: 0.3rem;
   cursor: pointer;
@@ -124,12 +120,17 @@ header {
 }
 
 .dropdown-toggle .dropdown-icon {
-  /* transition: transform 0.7s ease; */
   transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.units-dropdown:hover .dropdown-toggle .dropdown-icon {
+.units-dropdown.is-open .dropdown-toggle .dropdown-icon {
   transform: rotate(180deg);
+}
+
+.units-dropdown.is-open .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .dropdown-bridge {
@@ -162,20 +163,23 @@ header {
   transform: translateY(10px);
 }
 
-.units-dropdown:hover .dropdown-menu {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
+@media (hover: hover) and (pointer: fine) {
+  .units-dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .units-dropdown:hover .dropdown-toggle .dropdown-icon {
+    transform: rotate(180deg);
+  }
 }
 
 .dropdown-section {
-  /* padding: 0.8rem; */
-  /* border: 1px solid white; */
   margin-bottom: 0.7rem;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  /* border-bottom: 0.5px solid var(--Neutral-300); */
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 0.4rem;
   font-size: 0.8rem;
@@ -259,6 +263,41 @@ header {
 .search {
   display: grid;
   gap: 0.75rem;
+  position: relative;
+}
+
+.search-dropdown {
+  position: absolute;
+  top: 60px;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding-left: 1rem;
+  bottom: 2px;
+  background-color: var(--Neutral-600);
+  border-radius: 0.3rem;
+  z-index: 100;
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease,
+    visibility 0.4s ease;
+}
+
+.search-dropdown.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.search-dropdown button {
+  background-color: var(--Neutral-400);
+  color: var(--Neutral-200);
+  font-size: 1rem;
 }
 
 .input-text {
@@ -284,12 +323,10 @@ header {
 }
 
 .current_forecast {
-  /* width: 80vw; */
   margin: 0 auto;
 }
 
 .current_forecast {
-  /* width: 80vw; */
   margin: 1rem auto;
 }
 
@@ -331,7 +368,6 @@ header {
 }
 
 .weather_condition_container {
-  /* width: 80vw; */
   margin: 0 auto;
 }
 
@@ -348,17 +384,14 @@ header {
   gap: 1rem;
   padding: 1rem;
   flex-direction: column;
-  /* align-items: center; */
   flex-grow: 1;
 }
 
 .daily_forecast {
-  /* width: 80vw; */
   margin: 1rem auto;
 }
 
 .daily_forecast_container {
-  /* width: 80vw; */
   margin: 1rem auto;
 }
 
@@ -398,7 +431,6 @@ header {
 }
 
 .hourly_forecast_container {
-  /* width: 80vw; */
   padding: 1rem;
   background-color: var(--Neutral-800);
   border-radius: 1rem;
@@ -428,6 +460,7 @@ header {
 .hourly-dropdown-toggle {
   background-color: var(--Neutral-700);
   display: flex;
+  align-items: center;
   gap: 0.5rem;
   padding: 0.5rem;
   border-radius: 0.3rem;
@@ -444,10 +477,6 @@ header {
   cursor: pointer;
 }
 
-.hourly-dropdown:hover .hourly-dropdown-toggle .dropdown-icon {
-  transform: rotate(180deg);
-}
-
 .hourly-dropdown-bridge {
   position: absolute;
   right: 0px;
@@ -455,6 +484,16 @@ header {
   width: 100%;
   height: 16px;
   /* z-index: 9; */
+}
+
+.hourly-dropdown.is-open .hourly-dropdown-toggle .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+.hourly-dropdown.is-open .hourly-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(10px);
 }
 
 .hourly-dropdown-menu {
@@ -469,8 +508,9 @@ header {
   right: 0px;
   top: 30px;
   background-color: var(--Neutral-800);
-  z-index: 10;
+  z-index: 100;
   border-radius: 0.8rem;
+  transform: translateY(-10px);
   transition:
     opacity 0.5s ease,
     transform 0.5s ease,
@@ -478,10 +518,16 @@ header {
   transform: translateY(10px);
 }
 
-.hourly-dropdown:hover .hourly-dropdown-menu {
-  opacity: 1;
-  visibility: visible;
-  transform: translate Y(0);
+@media (hover: hover) and (pointer: fine) {
+  .hourly-dropdown:hover .hourly-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translate Y(0);
+  }
+
+  .hourly-dropdown:hover .hourly-dropdown-toggle .dropdown-icon {
+    transform: rotate(180deg);
+  }
 }
 
 .weekday-item-container {
