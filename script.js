@@ -13,7 +13,7 @@ searchInput.addEventListener('focus', () => {
 })
 
 document.addEventListener('click', (event) => {
-  if (!event.target.closest('.search')) {
+  if (!event.target.closest('.search_container')) {
     searchDropdown.classList.remove('is-visible');
   }
 });

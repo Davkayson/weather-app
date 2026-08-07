@@ -111,17 +111,22 @@
         <div class="search_container">
           <div class="search">
             <div class="empty_grid_search"></div>
-            <input
-              type="text"
-              placeholder="Search for a place..."
-              class="input-text"
-              id="citySearchInput"
-            />
-
-            <div class="search-dropdown" id="searchDropdown">
-              <button>City Name</button>
+            <div class="input-container">
+              <input
+                type="text"
+                placeholder="Search for a place..."
+                class="input-text"
+                id="citySearchInput"
+              />
+              <div class="search-dropdown-bridge"></div>
+              <div class="search-dropdown" id="searchDropdown">
+                <div class="search-cityname">
+                  <button class="city-name">City Name</button>
+                  <button class="city-name">City Name</button>
+                  <button class="city-name">City Name</button>
+                </div>
+              </div>
             </div>
-
             <button class="search_button">Search</button>
           </div>
         </div>
