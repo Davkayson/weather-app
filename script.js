@@ -7,8 +7,11 @@ const hourlyDropDownBtn = document.querySelector('.hourly-dropdown-toggle');
 const cityInput = document.getElementById('citySearchInput');
 const searchResults = document.getElementById('searchDropdown');
 
-searchInput.addEventListener('focus', () => {
-  searchDropdown.classList.add('is-visible');
+searchInput.addEventListener('focus', (e) => {
+  if (searchInput.length > 0) {
+    console.log(e.target);
+    searchDropdown.classList.add('is-visible');
+  }
 })
 
 document.addEventListener('click', (event) => {
