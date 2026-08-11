@@ -5,20 +5,14 @@ const dropdownBtn = document.querySelector('.dropdown-toggle');
 const hourlyDropDownContainer = document.querySelector('.hourly-dropdown');
 const hourlyDropDownBtn = document.querySelector('.hourly-dropdown-toggle');
 const cityInput = document.getElementById('citySearchInput');
-const searchResults = document.getElementById('searchDropdown');
+const searchResults = document.getElementById('searchResults');
 
-searchInput.addEventListener('focus', (e) => {
-  if (searchInput.length > 0) {
-    console.log(e.target);
-    searchDropdown.classList.add('is-visible');
-  }
-})
-
-document.addEventListener('click', (event) => {
-  if (event.target !== searchInput) {
-    searchDropdown.classList.remove('is-visible');
-  }
-});
+// searchInput.addEventListener('focus', (e) => {
+//   if (searchInput.length > 0) {
+//     console.log(e.target);
+//     searchDropdown.classList.add('is-visible');
+//   }
+// })
 
 function setupDropdown(btnSelector, wrapperSelector) {
   const btn = document.querySelector(btnSelector);
@@ -44,6 +38,8 @@ document.addEventListener('click', () => {
     openEl.classList.remove('is-open');
   });
 });
+
+
 
 const apiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=6.4541&longitude=3.3947&daily=weather_code,temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weather_code&current=temperature_2m,precipitation,weather_code,relative_humidity_2m,wind_speed_10m&timezone=auto';
 
@@ -74,14 +70,17 @@ function debounce(func, delay = 350) {
 }
 
 async function searchCities(query) {
-  if (!query.trim()) {
+  const trimmed = (query || '').toString().trim();
+  if (!trimmed) {
     searchResults.innerHTML = '';
     searchResults.classList.add('hidden');
     return;
   }
 
+  renderSearchLoading();
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(trimmed)}&count=5&language=en&format=json`;
+
   try {
-    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`;
     const response = await fetch(url)
     const data = await response.json()
 
@@ -92,24 +91,36 @@ async function searchCities(query) {
     }
     renderSearchResults(data.results);
   } catch (error) {
-    console.error('Error Searching Location', error);
+    console.error('Error Searching Location:', error);
+    searchResults.innerHTML = '<div class="search-item-empty search-error">Unable to fetch locations</div>';
   }
 }
+
+function renderSearchLoading() {
+  searchResults.innerHTML = `<div class="search-item-loading">
+    <span class="spinner"></span>
+    <span>Searching locations...</span>
+  </div>`
+    ;
+  searchResults.classList.remove('hidden');
+}
+
+
 
 function renderSearchResults(cities) {
   searchResults.innerHTML = '';
 
   cities.forEach(city => {
-    const option = document.createElement('button')
-    option.type = 'button';
-    option.className = 'search-cityname';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'search-item';
     const locationParts = [city.name, city.admin1, city.country].filter(Boolean);
-    option.textContent = locationParts.join(', ');
-    option.dataset.lat = city.latitude;
-    option.dataset.lon = city.longitude;
-    option.dataset.name = city.name;
+    btn.textContent = locationParts.join(', ');
+    btn.dataset.lat = city.latitude;
+    btn.dataset.lon = city.longitude;
+    btn.dataset.name = city.name;
 
-    searchResults.appendChild(option)
+    searchResults.appendChild(btn);
   });
   searchResults.classList.remove('hidden');
 }
@@ -119,15 +130,13 @@ cityInput.addEventListener('input', debounce((e) => {
 }, 350));
 
 searchResults.addEventListener('click', (e) => {
-  const selectedBtn = e.target.closest('search-cityname');
-  if (!selectedBtn) {
-    return;
-  }
+  const selectedBtn = e.target.closest('.search-item');
+  if (!selectedBtn) return;
   const lat = selectedBtn.dataset.lat;
   const lon = selectedBtn.dataset.lon;
   const cityName = selectedBtn.dataset.name;
   cityInput.value = selectedBtn.textContent;
-  searchResults.classList.add('hidden')
+  searchResults.classList.add('hidden');
 
   onCitySelected(lat, lon, cityName);
 });
@@ -139,18 +148,9 @@ document.addEventListener('click', (e) => {
 });
 
 async function onCitySelected(lat, lon, cityName) {
-  // 1. Update your global/active application state
   appState.lat = lat;
   appState.lon = lon;
   appState.locationName = cityName;
-
-  // 2. Update the main city title element in your HTML
-  const locationHeader = document.querySelector('.current-location-name');
-  if (locationHeader) {
-    locationHeader.textContent = cityName;
-  }
-
-  // 3. Fetch and render the new weather data for these coordinates
   await fetchAndRenderWeather();
 }
 
