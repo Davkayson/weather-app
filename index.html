@@ -130,17 +130,17 @@
           <div class="forecast_img_container">
             <div class="current_forecast_text">
               <div class="current_forecast_location">
-                <h3>Berlin, Germany</h3>
-                <h6>Tuesday, Aug 5, 2025</h6>
+                <h3 id="current_state-name">Berlin, Germany</h3>
+                <h6 id="current_date">Tuesday, Aug 5, 2025</h6>
               </div>
 
               <div class="current_forecast_temperature">
                 <div class="current_forecast_sun_img">
-                  <img src="/assets/images/icon-sunny.webp" />
+                  <img src="/assets/images/icon-sunny.webp" / id="current_weather-icon">
                 </div>
 
                 <div class="current_forecast_degree">
-                  <h1>68&deg;</h1>
+                  <h1 id="current_main-temp">68&deg;</h1>
                 </div>
               </div>
             </div>
@@ -176,7 +176,7 @@
         </div>
 
         <div class="daily_forecast_container">
-          <div class="daily_forecast_grid">
+          <div class="daily_forecast_grid" id="daily_forecast_container">
             <div class="daily_forecast_flex">
               <div class="daily_forecast_inner_flex">
                 <div class="daily_forecast_days">
@@ -302,7 +302,7 @@
         </div>
 
         <div class="hourly_forecast_container">
-          <div class="hourly_forecast_inner-container">
+          <div class="hourly_forecast_inner-container" id="hourly_items_container">
             <div class="hourly_forecast_text">
               <h5>Hourly forecast</h5>
 
@@ -317,7 +317,7 @@
 
                 <div class="hourly-dropdown-bridge"></div>
                 <div class="hourly-dropdown-menu">
-                  <div class="weekday-item-container">
+                  <div class="weekday-item-container" id="weekday_dropdown_menu">
                     <button class="weekday-item active">Monday</button>
                     <button class="weekday-item">Tuesday</button>
                     <button class="weekday-item">Wednesday</button>
@@ -330,7 +330,8 @@
               </div>
             </div>
 
-            <div class="hourly_forecast_time">
+            <div class="hourly_card_container" id="hourly_cards_container">
+              <div class="hourly_forecast_time">
               <div class="hourly_forecast_time_flex">
                 <div class="hourly_forecast_img_time">
                   <div class="hourly_forecast_img">
@@ -349,142 +350,143 @@
                   <p>68&deg;</p>
                 </div>
               </div>
-            </div>
+              </div>
 
-            <div class="hourly_forecast_time">
-              <div class="hourly_forecast_time_flex">
-                <div class="hourly_forecast_img_time">
-                  <div class="hourly_forecast_img">
-                    <img
-                      src="/assets/images/icon-partly-cloudy.webp"
-                      alt="partly-cloudy"
-                    />
+              <div class="hourly_forecast_time">
+                <div class="hourly_forecast_time_flex">
+                  <div class="hourly_forecast_img_time">
+                    <div class="hourly_forecast_img">
+                      <img
+                        src="/assets/images/icon-partly-cloudy.webp"
+                        alt="partly-cloudy"
+                      />
+                    </div>
+
+                    <div class="time">
+                      <h5>4 PM</h5>
+                    </div>
                   </div>
 
-                  <div class="time">
-                    <h5>4 PM</h5>
+                  <div class="degree">
+                    <p>68&deg;</p>
                   </div>
-                </div>
-
-                <div class="degree">
-                  <p>68&deg;</p>
                 </div>
               </div>
-            </div>
 
-            <div class="hourly_forecast_time">
-              <div class="hourly_forecast_time_flex">
-                <div class="hourly_forecast_img_time">
-                  <div class="hourly_forecast_img">
-                    <img
-                      src="/assets/images/icon-sunny.webp"
-                      alt="icon-sunny"
-                    />
+              <div class="hourly_forecast_time">
+                <div class="hourly_forecast_time_flex">
+                  <div class="hourly_forecast_img_time">
+                    <div class="hourly_forecast_img">
+                      <img
+                        src="/assets/images/icon-sunny.webp"
+                        alt="icon-sunny"
+                      />
+                    </div>
+
+                    <div class="time">
+                      <h5>5 PM</h5>
+                    </div>
                   </div>
 
-                  <div class="time">
-                    <h5>5 PM</h5>
+                  <div class="degree">
+                    <p>68&deg;</p>
                   </div>
-                </div>
-
-                <div class="degree">
-                  <p>68&deg;</p>
                 </div>
               </div>
-            </div>
 
-            <div class="hourly_forecast_time">
-              <div class="hourly_forecast_time_flex">
-                <div class="hourly_forecast_img_time">
-                  <div class="hourly_forecast_img">
-                    <img
-                      src="/assets/images/icon-overcast.webp"
-                      alt="overcast"
-                    />
+              <div class="hourly_forecast_time">
+                <div class="hourly_forecast_time_flex">
+                  <div class="hourly_forecast_img_time">
+                    <div class="hourly_forecast_img">
+                      <img
+                        src="/assets/images/icon-overcast.webp"
+                        alt="overcast"
+                      />
+                    </div>
+
+                    <div class="time">
+                      <h5>6 PM</h5>
+                    </div>
                   </div>
 
-                  <div class="time">
-                    <h5>6 PM</h5>
+                  <div class="degree">
+                    <p>66&deg;</p>
                   </div>
-                </div>
-
-                <div class="degree">
-                  <p>66&deg;</p>
                 </div>
               </div>
-            </div>
 
-            <div class="hourly_forecast_time">
-              <div class="hourly_forecast_time_flex">
-                <div class="hourly_forecast_img_time">
-                  <div class="hourly_forecast_img">
-                    <img src="/assets/images/icon-snow.webp" alt="icon-storm" />
+              <div class="hourly_forecast_time">
+                <div class="hourly_forecast_time_flex">
+                  <div class="hourly_forecast_img_time">
+                    <div class="hourly_forecast_img">
+                      <img src="/assets/images/icon-snow.webp" alt="icon-storm" />
+                    </div>
+
+                    <div class="time">
+                      <h5>7 PM</h5>
+                    </div>
                   </div>
 
-                  <div class="time">
-                    <h5>7 PM</h5>
+                  <div class="degree">
+                    <p>66&deg;</p>
                   </div>
-                </div>
-
-                <div class="degree">
-                  <p>66&deg;</p>
                 </div>
               </div>
-            </div>
 
-            <div class="hourly_forecast_time">
-              <div class="hourly_forecast_time_flex">
-                <div class="hourly_forecast_img_time">
-                  <div class="hourly_forecast_img">
-                    <img src="/assets/images/icon-fog.webp" alt="icon-fog" />
+              <div class="hourly_forecast_time">
+                <div class="hourly_forecast_time_flex">
+                  <div class="hourly_forecast_img_time">
+                    <div class="hourly_forecast_img">
+                      <img src="/assets/images/icon-fog.webp" alt="icon-fog" />
+                    </div>
+
+                    <div class="time">
+                      <h5>8 PM</h5>
+                    </div>
                   </div>
 
-                  <div class="time">
-                    <h5>8 PM</h5>
+                  <div class="degree">
+                    <p>64&deg;</p>
                   </div>
-                </div>
-
-                <div class="degree">
-                  <p>64&deg;</p>
                 </div>
               </div>
-            </div>
 
-            <div class="hourly_forecast_time">
-              <div class="hourly_forecast_time_flex">
-                <div class="hourly_forecast_img_time">
-                  <div class="hourly_forecast_img">
-                    <img src="/assets/images/icon-snow.webp" alt="icon-snow" />
+              <div class="hourly_forecast_time">
+                <div class="hourly_forecast_time_flex">
+                  <div class="hourly_forecast_img_time">
+                    <div class="hourly_forecast_img">
+                      <img src="/assets/images/icon-snow.webp" alt="icon-snow" />
+                    </div>
+
+                    <div class="time">
+                      <h5>9 PM</h5>
+                    </div>
                   </div>
 
-                  <div class="time">
-                    <h5>9 PM</h5>
+                  <div class="degree">
+                    <p>63&deg;</p>
                   </div>
-                </div>
-
-                <div class="degree">
-                  <p>63&deg;</p>
                 </div>
               </div>
-            </div>
 
-            <div class="hourly_forecast_time">
-              <div class="hourly_forecast_time_flex">
-                <div class="hourly_forecast_img_time">
-                  <div class="hourly_forecast_img">
-                    <img
-                      src="/assets/images/icon-overcast.webp"
-                      alt="overcast"
-                    />
+              <div class="hourly_forecast_time">
+                <div class="hourly_forecast_time_flex">
+                  <div class="hourly_forecast_img_time">
+                    <div class="hourly_forecast_img">
+                      <img
+                        src="/assets/images/icon-overcast.webp"
+                        alt="overcast"
+                      />
+                    </div>
+
+                    <div class="time">
+                      <h5>10 PM</h5>
+                    </div>
                   </div>
 
-                  <div class="time">
-                    <h5>10 PM</h5>
+                  <div class="degree">
+                    <p>63&deg;</p>
                   </div>
-                </div>
-
-                <div class="degree">
-                  <p>63&deg;</p>
                 </div>
               </div>
             </div>
