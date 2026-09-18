@@ -248,7 +248,22 @@ const newItem = document.createElement('li');
 newItem.textContent = 'London, UK';
 dropdown.append(newItem);
 
+const setupUnitsDropdown = () => {
+  const imperialBtn = document.querySelector('.imperial');
+  const dropdownMenu = document.querySelector('.dropdown-menu');
 
+  if (!dropdownMenu) {
+    return;
+  }
+
+  if (imperialBtn) {
+    imperialBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isImperial = imperialBtn.textContent.trim() === 'Switch to Imperial';
+    })
+  }
+
+}
 
 
 

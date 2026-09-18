@@ -277,10 +277,11 @@ searchDropdown.addEventListener('click', async (e) => {
   renderCurrentWeather(currentWeatherData, cityName, country);
   renderDailyForecast(currentWeatherData);
 
-  setupHourlyDropdownMenu(currentWeatherData);
-  renderHourlyForecast(currentWeatherData, 0);
-  setupHourlyDropdown();
+  // setupHourlyDropdownMenu(currentWeatherData);
+  // renderHourlyForecast(currentWeatherData, 0);
+  // setupHourlyDropdown();
 });
+
 
 
 function getWeatherIconPath(code) {
@@ -435,168 +436,152 @@ function renderDailyForecast(weatherData) {
 }
 
 
-function renderHourlyForecast(weatherData, dayIndex = 0) {
-  console.log("👉 CHECK 5: Inside renderHourlyForecast with dayIndex:", dayIndex);
-  if (!weatherData || !weatherData.hourly) {
-    console.log("❌ FAILED AT: weatherData or weatherData.hourly is missing!");
-    return;
+const currentUnits = {
+  temp: 'celsius',
+  speed: 'kmh',
+  precip: 'mm'
+};
+
+
+// convert celsius to Fahrenheit if unit is imperial.
+
+const formatTemp = (celsiusTemp) => {
+  if (currentUnits.temp === 'fahrenheit') {
+    const fahrenheit = (celsiusTemp * 9) / 5 + 32;
+    return `${Math.random(fahrenheit)}°F`;
   }
-
-  const cardsContainer = document.getElementById('hourly_cards_container');
-  console.log("👉 CHECK 6: Found cards container element?:", cardsContainer);
-  if (!cardsContainer) {
-    console.log("❌ FAILED AT: Element with ID 'hourly_cards_container' was NOT found in HTML!");
-    return;
-  }
-
-  const hourly = weatherData.hourly;
-
-  const startIndex = dayIndex * 24;
-  const endIndex = startIndex + 24;
-
-  let hourlyCardsHTML = '';
-
-  for (let i = startIndex; i < endIndex; i++) {
-
-    const dateObj = new Date(hourly.time[i]);
-    const formattedTime = dateObj.toLocaleTimeString('en-us', {
-      hour: 'numeric',
-      hour12: true
-    });
-
-    const iconPath = getWeatherIconPath(hourly.weather_code[i]);
-    const temp = Math.round(hourly.temperature_2m[i]);
-
-    hourlyCardsHTML += `
-    <div class="hourly_forecast_time_flex">
-      <div class="hourly_forecast_img_time">
-        <div class="hourly_forecast_img">
-          <img
-            src="${iconPath}"
-            alt="overcast"
-          />
-        </div>
-
-        <div class="time">
-          <h5>${formattedTime}</h5>
-        </div>
-      </div>
-
-      <div class="degree">
-        <p>${temp}&deg;</p>
-      </div>
-    </div>
-  `;
-  }
-  cardsContainer.innerHTML = hourlyCardsHTML;
+  return `${Math.round(celsiusTemp)}°C`;
 }
 
-function setupHourlyDropdownMenu(weatherData) {
-
-  const menuContainer = document.getElementById('weekday_dropdown_menu');
-
-  if (!menuContainer || !weatherData) {
-    return;
+const formatSpeed = (kmhSpeed) => {
+  if (currentUnits.speed === 'mph') {
+    const mph = `kmhSpeed * 0.621371`;
+    return `${Math.round(mph)}mph`;
   }
-
-  if (weatherData.daily) {
-    return;
-  }
-
-  let menuHTML = '';
-
-  weatherData.daily.time.forEach((timeStr, index) => {
-    const dayDate = new Date(`${timeStr}T00:00:00`);
-    const dayName = dayDate.toLocaleDateString('en-us', {
-      weekday: 'long'
-    });
-
-    let activeClass = '';
-
-    if (index === 0) {
-      activeClass = 'active';
-    }
-
-    menuHTML += `
-      <button class="weekday-item ${activeClass}" data-day-index="${index}">
-        ${dayName}
-      </button>
-    
-    `;
-
-  });
-
-  menuContainer.innerHTML = menuHTML;
+  return `${Math.round(kmhSpeed)}km/h`;
 }
 
-function setupHourlyDropdown() {
-  const toggleBtn = document.querySelector('.hourly-dropdown-toggle');
-  const dropdownMenu = document.querySelector('.hourly-dropdown-menu');
-  const dayTextSpan = document.querySelector('.day-text');
-
-  if (!toggleBtn || !dropdownMenu) {
-    console.log("❌ ERROR: toggleBtn or dropdownMenu not found in DOM!");
-    return;
+const formatPrecipitation = (mmPrecip) => {
+  if (currentUnits.precip === 'inch') {
+    const inches = mmPrecip * 0.0393701;
+    return `${inches.toFixed(2)}in`;
   }
-
-  toggleBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dropdownMenu.classList.toggle('is-visible');
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!toggleBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
-      dropdownMenu.classList.remove("is-visible");
-    }
-  });
-
-  dropdownMenu.addEventListener('click', (e) => {
-    console.log("1. Menu clicked! Target was:", e.target);
-    const btn = e.target.closest('.weekday-item');
-    console.log("2. Found weekday button?:", btn);
-
-    if (!btn) {
-      console.log("❌ Exited early: Click was not on a .weekday-item button");
-      return;
-    }
+  return `${mmPrecip.toFixed}(1)mm`;
+}
 
 
-    dropdownMenu.querySelectorAll('.weekday-item')
-      .forEach((item) => {
-        item.classList.remove('active');
-      });
 
-    btn.classList.add('active');
+const updateDropdownCheckmarks = () => {
+  const allLabels = document.querySelectorAll(".dropdown-label");
 
-    if (dayTextSpan) {
-      dayTextSpan.textcontent = btn.textContent.trim();
-    }
+  allLabels.forEach((label) => {
+    //Calling .textContent extracts only the visible text ("Celsius (C)") while ignoring the checkmark <img> tag entirely.
+    const text = label.textContent.toLowerCase();
 
-    dropdownMenu.classList.remove('is-visible');
+    // Check if this label matches the active state in currentUnits
+    const isCelsius = text.includes("celsius") && currentUnits.temp === "celsius";
+    const isFahrenheit = text.includes("fahrenheit") && currentUnits.temp === "fahrenheit";
+    const isKmh = text.includes("km/h") && currentUnits.speed === "kmh";
+    const isMph = text.includes("mph") && currentUnits.speed === "mph";
+    const isMm = text.includes("millimeters") && currentUnits.precip === "mm";
+    const isInch = text.includes("inches") && currentUnits.precip === "inch";
 
-    const selectedDayIndex = parseInt(btn.dataset.dayIndex, 10);
-    console.log("3. Extracted day index:", selectedDayIndex);
-    console.log("4. Global currentWeatherData object:", currentWeatherData);
-
-    if (currentWeatherData) {
-      console.log("5. Calling renderHourlyForecast now for day index:", selectedDayIndex);
-      renderHourlyForecast(currentWeatherData, selectedDayIndex);
+    // Toggle 'active' class
+    if (isCelsius || isFahrenheit || isKmh || isMph || isMm || isInch) {
+      label.classList.add("active");
     } else {
-      console.log("❌ ERROR: currentWeatherData is null!");
+      label.classList.remove("active");
     }
   });
+};
 
+
+
+// SYNC MASTER BUTTON LABEL TEXT
+
+const updateMasterButtonText = () => {
+  const imperialBtn = document.querySelector(".imperial");
+  if (!imperialBtn) return;
+
+  const isAllImperial =
+    currentUnits.temp === "fahrenheit" &&
+    currentUnits.speed === "mph" &&
+    currentUnits.precip === "inch";
+  //Evaluates three conditions. All three conditions must be true for isAllImperial to store true.
+  if (isAllImperial) {
+    imperialBtn.textContent = "Switch to Metric";
+  } else {
+    imperialBtn.textContent = "Switch to Imperial";
+  }
+};
+
+
+// MAIN DROPDOWN SETUP & LISTENERS
+const setupUnitsDropdown = () => {
+  const imperialBtn = document.querySelector(".imperial");
+  const dropdownMenu = document.querySelector(".dropdown-menu");
+
+  if (!dropdownMenu) {
+    return;
+  }
+
+  // --- A. Master Toggle Button Handler ---
+  if (imperialBtn) {
+    imperialBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+
+      const isImperial = imperialBtn.textContent.trim() === "Switch to Imperial";
+
+      if (isImperial) {
+        currentUnits.temp = "fahrenheit";
+        currentUnits.speed = "mph";
+        currentUnits.precip = "inch";
+        imperialBtn.textContent = "Switch to Metric";
+      } else {
+        currentUnits.temp = "celsius";
+        currentUnits.speed = "kmh";
+        currentUnits.precip = "mm";
+        imperialBtn.textContent = "Switch to Imperial";
+      }
+
+      updateDropdownCheckmarks();
+    });
+  }
+
+  // --- B. Individual Label Click Handler ---
+  dropdownMenu.addEventListener("click", (e) => {
+    const selectedLabel = e.target.closest(".dropdown-label");
+    if (!selectedLabel) return;
+
+    const labelText = selectedLabel.textContent.toLowerCase();
+
+    if (labelText.includes("celsius")) {
+      currentUnits.temp = "celsius";
+    } else if (labelText.includes("fahrenheit")) {
+      currentUnits.temp = "fahrenheit";
+    } else if (labelText.includes("km/h")) {
+      currentUnits.speed = "kmh";
+    } else if (labelText.includes("mph")) {
+      currentUnits.speed = "mph";
+    } else if (labelText.includes("millimeters")) {
+      currentUnits.precip = "mm";
+    } else if (labelText.includes("inches")) {
+      currentUnits.precip = "inch";
+    }
+
+    updateDropdownCheckmarks();
+    updateMasterButtonText();
+  });
+};
+
+
+// INITIALIZATION ON DOM LOAD
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    setupUnitsDropdown();
+  });
+} else {
+  setupUnitsDropdown();
 }
-
-
-
-
-
-
-
-
-
-
-
 
 

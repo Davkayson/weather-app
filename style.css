@@ -195,7 +195,7 @@ header {
   margin-bottom: 0;
 }
 
-.Imperial {
+.imperial {
   background-color: var(--Neutral-700);
   color: var(--Neutral-0);
   border-radius: 0.3rem;
@@ -206,7 +206,7 @@ header {
   font-size: 0.8rem;
 }
 
-.Imperial:hover {
+.imperial:hover {
   background-color: var(--Neutral-800);
   color: var(--Neutral-0);
 }
@@ -240,6 +240,18 @@ header {
 .dropdown-label:hover {
   background-color: var(--Neutral-800);
   color: var(--Neutral-0);
+}
+
+.dropdown-label .checkmark-icon {
+  display: none;
+}
+
+.dropdown-label.active .checkmark-icon {
+  display: inline-block;
+}
+
+.checkmark-icon {
+  pointer-events: none;
 }
 
 .sub-heading {
