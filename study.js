@@ -266,7 +266,29 @@ const setupUnitsDropdown = () => {
 }
 
 
+const formatTemp = (celsiusTemp) => {
+  if (currentUnits.temp === 'fahenreit') {
+    const fahenreit = (celsiusTemp * 9) / 5 + 32;
+    return `${Math.round(fahenreit)}°F`;
+  }
+  return `${Math.round(celsiusTemp)}°C`;
+};
 
+const formatSpeed = (kmhSpeed) => {
+  if (currentUnits.speed === 'mph') {
+    const mph = kmh * 0.621371
+    return `${Math.round(mph)}mp/h`
+  }
+  return `${Math.round(kmh)}km/h`;
+}
+
+const formatPercip = (mmPrecip) => {
+  if (currentUnits.precip === 'inch') {
+    const inch = mm / 25.4;
+    return `${inch.toFixed(2)}in`
+  }
+  return `${Math.round(mm)}mm`;
+}
 
 
 

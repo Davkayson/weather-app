@@ -1,3 +1,4 @@
+// Stores the raw weather data returned from the Open-Meteo API in browser memory. Having this globally available lets you re-render the screen instantly when changing units (°C to °F, km/h to mph) without needing to make another network request.
 let currentWeatherData = null;
 const searchInput = document.querySelector('.input-text');
 const searchDropdown = document.querySelector('.search-dropdown');
@@ -14,7 +15,7 @@ const isEmpty = (value) => {
   }
 };
 
-searchDropdown.addEventListener('input', (e) => {
+searchInput.addEventListener('input', (e) => {
   const { value } = e.target;
 
   if (isEmpty(value)) {
@@ -207,6 +208,8 @@ searchInput.addEventListener('input', (e) => {
 
       // Backticks (`): Denotes a Template Literal, allowing multi-line strings and inline variable evaluation.
 
+      //data-* Attributes: Embedded dataset properties (data-lat, data-lon, etc.) attached to each dynamic <div> element to hold exact coordinate values for click handling.
+
       dropdownHTML += `
         <div
           class="dropdown-item"
@@ -255,7 +258,7 @@ searchDropdown.addEventListener('click', async (e) => {
   }
 
   // Extracting HTML data-* Attributes
-
+  //dataset: Reads the data-lat, data-lon, data-name, and data-country values directly from the clicked item.
   const lat = selectedItem.dataset.lat;
   const lon = selectedItem.dataset.lon;
   const cityName = selectedItem.dataset.name;
@@ -272,7 +275,7 @@ searchDropdown.addEventListener('click', async (e) => {
 
   searchDropdown.classList.remove('is-visible');
   searchDropdown.innerHTML = '';
-
+  //currentWeatherData = await getWeatherData(lat, lon): Fetches weather metrics and saves them to our global state variable.
   currentWeatherData = await getWeatherData(lat, lon);
   renderCurrentWeather(currentWeatherData, cityName, country);
   renderDailyForecast(currentWeatherData);
@@ -347,7 +350,8 @@ function renderCurrentWeather(weatherData, cityName, country) {
   const mainTempEl = document.getElementById('current_main-temp');
 
   if (mainTempEl) {
-    mainTempEl.innerHTML = `${Math.round(current.temperature_2m)}&deg`;
+    // mainTempEl.innerHTML = `${Math.round(current.temperature_2m)}&deg`;
+    mainTempEl.textContent = formatTemp(current.temperature_2m);
   }
 
 
@@ -361,7 +365,8 @@ function renderCurrentWeather(weatherData, cityName, country) {
     } else {
       feelsValue = current.temperature_2m;
     }
-    feelsLIkeEl.innerHTML = `${Math.round(feelsValue)}&deg;`
+    // feelsLIkeEl.innerHTML = `${Math.round(feelsValue)}&deg;`
+    feelsLIkeEl.textContent = formatTemp(feelsValue);
   }
 
   const humidityEl = document.getElementById('Humidity');
@@ -373,15 +378,17 @@ function renderCurrentWeather(weatherData, cityName, country) {
   const windEl = document.getElementById('wind');
 
   if (windEl) {
-    const windMph = Math.round(current.wind_speed_10m * 0.621371);
-    windEl.textContent = `${windMph}mph`;
+    // const windMph = Math.round(current.wind_speed_10m * 0.621371);
+    // windEl.textContent = `${windMph}mph`;
+    windEl.textContent = formatSpeed(current.wind_speed_10m);
   }
 
   const precipEl = document.getElementById('precipitation');
 
   if (precipEl) {
-    const precipiInches = (current.precipitation * 0.0393701).toFixed(2);
-    precipEl.textContent = `${precipiInches}in`;
+    // const precipiInches = (current.precipitation * 0.0393701).toFixed(2);
+    // precipEl.textContent = `${precipiInches}in`;
+    precipEl.textContent = formatPrecip(current.precipitation);
   }
 
 }
@@ -398,7 +405,7 @@ function renderDailyForecast(weatherData) {
   if (!dailyContainer) {
     return;
   }
-
+  //Cleaner code and better readability. Instead of writing weatherData.daily.time[i]
   const daily = weatherData.daily
   let cardsHTML = '';
 
@@ -408,8 +415,8 @@ function renderDailyForecast(weatherData) {
 
     const iconPath = getWeatherIconPath(daily.weather_code[i]);
 
-    const maxTemp = Math.round(daily.temperature_2m_max[i]);
-    const minTemp = Math.round(daily.temperature_2m_min[i]);
+    const maxTemp = formatTemp(daily.temperature_2m_max[i]);
+    const minTemp = formatTemp(daily.temperature_2m_min[i]);
 
     cardsHTML += `
       <div class="daily_forecast_flex">
@@ -423,8 +430,8 @@ function renderDailyForecast(weatherData) {
           </div>
 
           <div class="daily_forecast_temp">
-            <p>${maxTemp}&deg;</p>
-            <p>${minTemp}&deg;</p>
+            <p>${maxTemp}</p>
+            <p>${minTemp}</p>
           </div>
         </div>
       </div>
@@ -435,6 +442,7 @@ function renderDailyForecast(weatherData) {
 
 }
 
+// GLOBAL UNITS STATE OBEJCT
 
 const currentUnits = {
   temp: 'celsius',
@@ -448,28 +456,28 @@ const currentUnits = {
 const formatTemp = (celsiusTemp) => {
   if (currentUnits.temp === 'fahrenheit') {
     const fahrenheit = (celsiusTemp * 9) / 5 + 32;
-    return `${Math.random(fahrenheit)}°F`;
+    return `${Math.round(fahrenheit)}°F`;
   }
   return `${Math.round(celsiusTemp)}°C`;
 }
 
 const formatSpeed = (kmhSpeed) => {
   if (currentUnits.speed === 'mph') {
-    const mph = `kmhSpeed * 0.621371`;
+    const mph = kmhSpeed * 0.621371;
     return `${Math.round(mph)}mph`;
   }
   return `${Math.round(kmhSpeed)}km/h`;
 }
 
-const formatPrecipitation = (mmPrecip) => {
+const formatPrecip = (mmPrecip) => {
   if (currentUnits.precip === 'inch') {
     const inches = mmPrecip * 0.0393701;
     return `${inches.toFixed(2)}in`;
   }
-  return `${mmPrecip.toFixed}(1)mm`;
+  return `${mmPrecip.toFixed(1)}mm`;
 }
 
-
+// WORKING ON THE CHECKMARK.
 
 const updateDropdownCheckmarks = () => {
   const allLabels = document.querySelectorAll(".dropdown-label");
@@ -479,6 +487,7 @@ const updateDropdownCheckmarks = () => {
     const text = label.textContent.toLowerCase();
 
     // Check if this label matches the active state in currentUnits
+    // This acts as a truth filter that determines whether a specific dropdown option should display a checkmark
     const isCelsius = text.includes("celsius") && currentUnits.temp === "celsius";
     const isFahrenheit = text.includes("fahrenheit") && currentUnits.temp === "fahrenheit";
     const isKmh = text.includes("km/h") && currentUnits.speed === "kmh";
@@ -486,7 +495,7 @@ const updateDropdownCheckmarks = () => {
     const isMm = text.includes("millimeters") && currentUnits.precip === "mm";
     const isInch = text.includes("inches") && currentUnits.precip === "inch";
 
-    // Toggle 'active' class
+    // Toggle 'active' class that acts as a checkmark switcher
     if (isCelsius || isFahrenheit || isKmh || isMph || isMm || isInch) {
       label.classList.add("active");
     } else {
@@ -497,11 +506,13 @@ const updateDropdownCheckmarks = () => {
 
 
 
-// SYNC MASTER BUTTON LABEL TEXT
+// THE MASTER TOGGLE BUTTON THAT CHANGES THE LABEL TEXT AND SI UNIT STATE
 
 const updateMasterButtonText = () => {
   const imperialBtn = document.querySelector(".imperial");
-  if (!imperialBtn) return;
+  if (!imperialBtn) {
+    return;
+  }
 
   const isAllImperial =
     currentUnits.temp === "fahrenheit" &&
@@ -511,6 +522,7 @@ const updateMasterButtonText = () => {
   if (isAllImperial) {
     imperialBtn.textContent = "Switch to Metric";
   } else {
+    //It returns false at the start, and only becomes true after the user changes all three units to Imperial!
     imperialBtn.textContent = "Switch to Imperial";
   }
 };
@@ -525,7 +537,17 @@ const setupUnitsDropdown = () => {
     return;
   }
 
-  // --- A. Master Toggle Button Handler ---
+  // const refreshUI = () => {
+  //   if (currentWeatherData) {
+  //     const parts = searchInput.value.split(',');
+  //     const cityName = parts[0] ? parts[0].trim() : '';
+  //     const country = parts[1] ? parts[1].trim() : '';
+  //     renderCurrentWeather(currentWeatherData, cityName, country);
+  //     renderDailyForecast(currentWeatherData);
+  //   }
+  // };
+
+  // MASTER TOGGLE BUTTON HANDLER WWHEN WE CLICK ON THE IMPERIAL BUTTON 
   if (imperialBtn) {
     imperialBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -543,15 +565,41 @@ const setupUnitsDropdown = () => {
         currentUnits.precip = "mm";
         imperialBtn.textContent = "Switch to Imperial";
       }
-
+      // SO THAT THE CHECKMARK TOO WOULD ACT ACCORDINGLY.
       updateDropdownCheckmarks();
+
+
+      if (currentWeatherData) {
+        const parts = searchInput.value.split(',');
+
+        let cityName = '';
+        if (parts[0]) {
+          cityName = parts[0].trim();
+        } else {
+          cityName = '';
+        }
+
+        let country = '';
+        if (parts[1]) {
+          country = parts[1].trim();
+        } else {
+          country = '';
+        }
+
+        renderCurrentWeather(currentWeatherData, cityName, country);
+        renderDailyForecast(currentWeatherData);
+      }
     });
   }
 
-  // --- B. Individual Label Click Handler ---
+  // Individual Label Click Handler
   dropdownMenu.addEventListener("click", (e) => {
+    //event.target.closest(".dropdown-label")): Identifies what was clicked.
+    // Locate nearest .dropdown-label span from click target
     const selectedLabel = e.target.closest(".dropdown-label");
-    if (!selectedLabel) return;
+    if (!selectedLabel) {
+      return;
+    }
 
     const labelText = selectedLabel.textContent.toLowerCase();
 
@@ -571,6 +619,27 @@ const setupUnitsDropdown = () => {
 
     updateDropdownCheckmarks();
     updateMasterButtonText();
+
+    if (currentWeatherData) {
+      const parts = searchInput.value.split(',');
+
+      let cityName = '';
+      if (parts[0]) {
+        cityName = parts[0].trim();
+      } else {
+        cityName = '';
+      }
+
+      let country = '';
+      if (parts[1]) {
+        country = parts[1].trim();
+      } else {
+        country = '';
+      }
+
+      renderCurrentWeather(currentWeatherData, cityName, country);
+      renderDailyForecast(currentWeatherData);
+    }
   });
 };
 
@@ -583,5 +652,8 @@ if (document.readyState === "loading") {
 } else {
   setupUnitsDropdown();
 }
+
+
+
 
 
