@@ -419,7 +419,7 @@ input::placeholder {
   background-size: 1rem;
   color: var(--Neutral-200);
   background-color: var(--Neutral-600);
-  padding: 0.5rem 0.5rem 0.5rem 3.77rem;
+  padding: 0.5rem 0.5rem 0.5rem 3rem;
   width: 100%;
   font-size: 1.25rem;
   border-radius: 0.3rem;
