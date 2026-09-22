@@ -305,7 +305,7 @@ input::placeholder {
   /* border-radius: 0.5rem; */
   border-radius: 0.3rem;
   width: 100%;
-  /* display: flex; */
+  display: flex;
   visibility: hidden;
   opacity: 0;
   flex-direction: column;
@@ -321,6 +321,7 @@ input::placeholder {
   transform: translateY(0px);
   /* padding: 0.6rem 0; */
   padding: 0.5rem 0;
+  overflow: hidden;
 }
 
 /* #searchResults.hidden {
@@ -410,7 +411,7 @@ input::placeholder {
   background-size: 1rem;
   color: var(--Neutral-200);
   background-color: var(--Neutral-600);
-  padding: 0.5rem 6rem 0.5rem 3.77rem;
+  padding: 0.5rem 0.5rem 0.5rem 3.77rem;
   width: 100%;
   font-size: 1.25rem;
   border-radius: 0.3rem;

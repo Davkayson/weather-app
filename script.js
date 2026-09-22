@@ -1,5 +1,4 @@
 // Stores the raw weather data returned from the Open-Meteo API in browser memory. Having this globally available lets you re-render the screen instantly when changing units (°C to °F, km/h to mph) without needing to make another network request.
-let currentWeatherData = null;
 const searchInput = document.querySelector('.input-text');
 const searchDropdown = document.querySelector('.search-dropdown');
 const dropdownContainer = document.querySelector('.units-dropdown');
@@ -8,6 +7,9 @@ const hourlyDropDownContainer = document.querySelector('.hourly-dropdown');
 const hourlyDropDownBtn = document.querySelector('.hourly-dropdown-toggle');
 const cityInput = document.getElementById('citySearchInput');
 const searchResults = document.getElementById('searchResults');
+let currentWeatherData = null;
+let activeCityName = '';
+let activeCountry = '';
 
 const isEmpty = (value) => {
   if (typeof value === 'string') {
@@ -31,6 +33,19 @@ document.addEventListener('click', (e) => {
     searchDropdown.classList.remove('is-visible');
   }
 });
+
+const setupSearchClear = () => {
+  cityInput.type = 'search';
+
+  if (cityInput.value === '') {
+    if (searchDropdown) {
+      searchDropdown.innerHTML = '';
+      return;
+    }
+    return;
+  }
+}
+setupSearchClear();
 
 
 function multiDropdownPanel(btnSelector, wrapperSelector) {
@@ -62,12 +77,6 @@ document.addEventListener('click', () => {
 
 
 async function getCoordinates(cityName) {
-  // getCoordinates("Lagos") returns an array of matching locations.
-  //   [
-  //   { "name": "Lagos", "country": "Nigeria", "admin1": "Lagos", "latitude": 6.5244, "longitude": 3.3792 },
-  //   { "name": "Lagos", "country": "Portugal", "admin1": "Faro", "latitude": 37.1028, "longitude": -8.6730 }
-  // ]
-
 
   // Once the user picks one (e.g., index 0), you pass its latitude (6.5244) and longitude (3.3792) directly into getWeatherData(6.5244, 3.3792).
 
@@ -83,18 +92,6 @@ async function getCoordinates(cityName) {
     if (!data.results || data.results.length == 0) {
       return [];
     }
-
-
-
-    // return data.results.map((city) => ({
-    //   name: city.name,
-    //   country: city.country || '',
-    //   admin1: city.admin1 || '',
-    //   longitude: city.logitude,
-    //   latitude: city.latitude
-    // }));
-
-
 
     // Create an empty array to hold cleaned locations
     const cleanCities = [];
@@ -140,7 +137,6 @@ async function getWeatherData(lat, lon) {
   }
 }
 
-// We are wiring the search input to show city options.
 
 // scope variable to track our debounce timer.
 let debounceTimer;
@@ -152,13 +148,11 @@ searchInput.addEventListener('input', (e) => {
   // ALWAYS cancel any existing timer from a previous keypress
   clearTimeout(debounceTimer);
 
-  // Guard clause: If input is cleared or empty, hide dropdown.
 
   if (!isEmpty(value)) {
     searchDropdown.classList.remove("is-visible");
     searchDropdown.innerHTML = "";
     return;
-    // the return here give it an early exit that prevents it form reaching the show loading state... if the return isn't there it would move to the show loading state.... We can add an else block in place of the "return".
   }
 
   // 2. Show loading state inside the dropdown.
@@ -168,12 +162,7 @@ searchInput.addEventListener('input', (e) => {
   // Start the delay timer
   debounceTimer = setTimeout(async () => {
 
-    // saftey check: verify input wasn't erased during the 500ms wait.
-    // Safety check: Did the user clear the input while waiting 500ms?
-
-    // Safety Net: Re-check if search box was erased during the 500ms delay
     if (!isEmpty(searchInput.value)) {
-      //In JavaScript, writing return; inside a function tells the computer: Stop immediately and exit this function right now. Do NOT execute any lines of code below this
       return;
     }
 
@@ -186,11 +175,6 @@ searchInput.addEventListener('input', (e) => {
     };
 
 
-    // Declares a variable whose value can change over time.
-
-    // The variable name. It acts as an empty container (a string) where we will accumulate each <li> HTML element as the loop runs.
-
-    // An empty string. Initializing it with an empty string ensures that when we append text to it later, JavaScript treats it as text rather than trying to add strings to undefined.
 
 
     let dropdownHTML = '';
@@ -203,12 +187,6 @@ searchInput.addEventListener('input', (e) => {
       if (city.admin1) {
         stateText = ", " + city.admin1;
       }
-
-      // ", " + "California"   becomes ", California").
-
-      // Backticks (`): Denotes a Template Literal, allowing multi-line strings and inline variable evaluation.
-
-      //data-* Attributes: Embedded dataset properties (data-lat, data-lon, etc.) attached to each dynamic <div> element to hold exact coordinate values for click handling.
 
       dropdownHTML += `
         <div
@@ -227,45 +205,23 @@ searchInput.addEventListener('input', (e) => {
   }, 500);
 });
 
-// When a user clicks a city suggestion:
-// Extract data-lat and data-lon using .closest(".dropdown-item").
-// Hide the dropdown.
-// Pass lat and lon straight into getWeatherData(lat, lon).
 
 searchDropdown.addEventListener('click', async (e) => {
   // Find the clicked item using event delegation
   const selectedItem = e.target.closest('.dropdown-item')
 
-  // e (Event Object): The browser automatically creates this object when an action happens (like a click event). It carries all the technical details about that specific click.
-
-  // e.target: Refers to the exact HTML element clicked by the user
-
-  // .closest(".dropdown-item"): A DOM method that searches upward through the HTML tree (starting from e.target) until it finds the nearest parent element with the class .dropdown-item.
-
-  // climbs up to find the main container item.
-
-  // const selectedItem: A variable storing a direct reference to that parent .dropdown-item element so you can extract its data or manipulate it.
-
-  //Safety Check: If the user clicks outside or on an area without .dropdown-item, selectedItem evaluates to null.
-
-  // If clicked outside a city option, ignore
-
-
-  // Why This Code Is Necessary : If a user clicks near the dropdown menu (for example, on a blank border or spacing between items), e.target.closest(".dropdown-item") will not find a match and will return null.
 
   if (!selectedItem) {
     return;
   }
 
-  // Extracting HTML data-* Attributes
-  //dataset: Reads the data-lat, data-lon, data-name, and data-country values directly from the clicked item.
   const lat = selectedItem.dataset.lat;
   const lon = selectedItem.dataset.lon;
   const cityName = selectedItem.dataset.name;
   const country = selectedItem.dataset.country;
 
-
-  // We only checked for country because cityName is guaranteed to exist for every valid city returned by the Open-Meteo Geocoding API, whereas country is optional and can sometimes be an empty string or missing (for example, for micro-regions, island territories, or disputed areas).
+  activeCityName = cityName;
+  activeCountry = country || '';
 
   if (country) {
     searchInput.value = `${cityName}, ${country}`;
@@ -275,14 +231,10 @@ searchDropdown.addEventListener('click', async (e) => {
 
   searchDropdown.classList.remove('is-visible');
   searchDropdown.innerHTML = '';
-  //currentWeatherData = await getWeatherData(lat, lon): Fetches weather metrics and saves them to our global state variable.
   currentWeatherData = await getWeatherData(lat, lon);
-  renderCurrentWeather(currentWeatherData, cityName, country);
+  renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
   renderDailyForecast(currentWeatherData);
 
-  // setupHourlyDropdownMenu(currentWeatherData);
-  // renderHourlyForecast(currentWeatherData, 0);
-  // setupHourlyDropdown();
 });
 
 
@@ -325,11 +277,7 @@ function renderCurrentWeather(weatherData, cityName, country) {
   const dateEl = document.getElementById('current_date');
 
   if (dateEl) {
-    //A built-in JavaScript constructor that creates a new Date object containing the current date and exact time from the computer or device running the code.
-
-    //Why it was used: JavaScript needs a starting point to know what today is. Writing new Date() grabs the current live timestamp so you can work with it in your code.
     const today = new Date();
-    //A plain JavaScript configuration object containing key-value pairs that tell JavaScript how to format the raw date.
     const dateOptions = {
       weekday: "long",
       month: "short",
@@ -338,8 +286,6 @@ function renderCurrentWeather(weatherData, cityName, country) {
     }
     dateEl.textContent = today.toLocaleDateString('en-us', dateOptions)
   }
-  // 
-  // Updating the Weather Icon
 
   const iconEl = document.getElementById('current_weather-icon');
 
@@ -350,7 +296,6 @@ function renderCurrentWeather(weatherData, cityName, country) {
   const mainTempEl = document.getElementById('current_main-temp');
 
   if (mainTempEl) {
-    // mainTempEl.innerHTML = `${Math.round(current.temperature_2m)}&deg`;
     mainTempEl.textContent = formatTemp(current.temperature_2m);
   }
 
@@ -365,7 +310,6 @@ function renderCurrentWeather(weatherData, cityName, country) {
     } else {
       feelsValue = current.temperature_2m;
     }
-    // feelsLIkeEl.innerHTML = `${Math.round(feelsValue)}&deg;`
     feelsLIkeEl.textContent = formatTemp(feelsValue);
   }
 
@@ -378,16 +322,12 @@ function renderCurrentWeather(weatherData, cityName, country) {
   const windEl = document.getElementById('wind');
 
   if (windEl) {
-    // const windMph = Math.round(current.wind_speed_10m * 0.621371);
-    // windEl.textContent = `${windMph}mph`;
     windEl.textContent = formatSpeed(current.wind_speed_10m);
   }
 
   const precipEl = document.getElementById('precipitation');
 
   if (precipEl) {
-    // const precipiInches = (current.precipitation * 0.0393701).toFixed(2);
-    // precipEl.textContent = `${precipiInches}in`;
     precipEl.textContent = formatPrecip(current.precipitation);
   }
 
@@ -405,7 +345,6 @@ function renderDailyForecast(weatherData) {
   if (!dailyContainer) {
     return;
   }
-  //Cleaner code and better readability. Instead of writing weatherData.daily.time[i]
   const daily = weatherData.daily
   let cardsHTML = '';
 
@@ -456,9 +395,9 @@ const currentUnits = {
 const formatTemp = (celsiusTemp) => {
   if (currentUnits.temp === 'fahrenheit') {
     const fahrenheit = (celsiusTemp * 9) / 5 + 32;
-    return `${Math.round(fahrenheit)}°F`;
+    return `${Math.round(fahrenheit)}°`;
   }
-  return `${Math.round(celsiusTemp)}°C`;
+  return `${Math.round(celsiusTemp)}°`;
 }
 
 const formatSpeed = (kmhSpeed) => {
@@ -537,15 +476,6 @@ const setupUnitsDropdown = () => {
     return;
   }
 
-  // const refreshUI = () => {
-  //   if (currentWeatherData) {
-  //     const parts = searchInput.value.split(',');
-  //     const cityName = parts[0] ? parts[0].trim() : '';
-  //     const country = parts[1] ? parts[1].trim() : '';
-  //     renderCurrentWeather(currentWeatherData, cityName, country);
-  //     renderDailyForecast(currentWeatherData);
-  //   }
-  // };
 
   // MASTER TOGGLE BUTTON HANDLER WWHEN WE CLICK ON THE IMPERIAL BUTTON 
   if (imperialBtn) {
@@ -586,7 +516,7 @@ const setupUnitsDropdown = () => {
           country = '';
         }
 
-        renderCurrentWeather(currentWeatherData, cityName, country);
+        renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
         renderDailyForecast(currentWeatherData);
       }
     });
@@ -594,8 +524,6 @@ const setupUnitsDropdown = () => {
 
   // Individual Label Click Handler
   dropdownMenu.addEventListener("click", (e) => {
-    //event.target.closest(".dropdown-label")): Identifies what was clicked.
-    // Locate nearest .dropdown-label span from click target
     const selectedLabel = e.target.closest(".dropdown-label");
     if (!selectedLabel) {
       return;
@@ -637,7 +565,7 @@ const setupUnitsDropdown = () => {
         country = '';
       }
 
-      renderCurrentWeather(currentWeatherData, cityName, country);
+      renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
       renderDailyForecast(currentWeatherData);
     }
   });
