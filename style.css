@@ -425,6 +425,11 @@ input::placeholder {
   border-radius: 0.3rem;
 }
 
+input[type='search']::-webkit-search-cancel-button {
+  -webkit-appearance: searchfield-cancel-button !important;
+  display: block !important;
+  cursor: pointer;
+}
 .search_button {
   background-color: var(--Blue-500);
   color: var(--Neutral-0);

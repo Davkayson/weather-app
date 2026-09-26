@@ -7,6 +7,12 @@ const hourlyDropDownContainer = document.querySelector('.hourly-dropdown');
 const hourlyDropDownBtn = document.querySelector('.hourly-dropdown-toggle');
 const cityInput = document.getElementById('citySearchInput');
 const searchResults = document.getElementById('searchResults');
+// const hourlyCardsContainer = document.querySelector('#hourly_cards_container')
+// const dropdownToggle = document.querySelector(".hourly-dropdown-toggle")
+// const dropdownMenu = document.querySelector('.hourly-dropdown-menu');
+// const dayTextSpan = document.querySelector('.day-text');
+// const weekdayButtons = document.querySelector('.weekday-item');
+
 let currentWeatherData = null;
 let activeCityName = '';
 let activeCountry = '';
@@ -234,7 +240,7 @@ searchDropdown.addEventListener('click', async (e) => {
   currentWeatherData = await getWeatherData(lat, lon);
   renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
   renderDailyForecast(currentWeatherData);
-
+  renderHourlyForecast(currentWeatherData);
 });
 
 
@@ -381,7 +387,256 @@ function renderDailyForecast(weatherData) {
 
 }
 
+
+
+
+const renderHourlyForecast = (weatherData) => {
+  const hourlyCardsContainer = document.querySelector("#hourly_cards_container");
+  if (hourlyCardsContainer === null || weatherData === undefined || weatherData.hourly === undefined) {
+    return;
+  }
+
+  // Clear static placeholder elements
+  hourlyCardsContainer.innerHTML = "";
+
+  // Extract arrays from Open-Meteo data structure
+  const times = weatherData.hourly.time || [];
+  const temps = weatherData.hourly.temperature_2m || [];
+  const weatherCodes = weatherData.hourly.weather_code || [];
+
+  // Get the current data and time
+  const now = new Date();
+
+  // Intialize a variable to store the starting array index
+
+  let startIndex = 0;
+
+  // loop through Open-Meteo's time array to find a match
+
+  for (let i = 0; i < times.length; i++) {
+    const cardDate = new Date(times[i])
+
+    if (cardDate >= now || cardDate.getHours() === now.getHours()) {
+      startIndex = i;
+      break;
+    }
+  }
+  // const currentHourIndex = times.findIndex((timeStr) => {
+  //   const cardDate = new Date(timeStr);
+  //   return cardDate >= now || cardDate.getHours() === now.getHours();
+  // });
+
+  const upcomingTimes = times.slice(startIndex, startIndex + 8)
+
+  upcomingTimes.forEach((timeStr, idx) => {
+    const dataIndex = startIndex + idx;
+    const rawTemp = temps[dataIndex];
+    const code = weatherCodes[dataIndex];
+
+    const displayTemp = formatTemp(rawTemp, currentUnits.temp);
+
+    const hourDate = new Date(timeStr);
+    const formattedTime = hourDate.toLocaleDateString([], {
+      hour: 'numeric',
+      hour12: true
+    })
+
+    const iconPath = getWeatherIconPath(code);
+
+    // Determine card Label
+
+    let timelabel = '';
+    if (idx === '0') {
+      timelabel = 'Now';
+    } else {
+      timelabel = formattedTime;
+    }
+
+    const hourlyCard = document.createElement('div');
+    hourlyCard.className = 'hourly_forecast_time';
+    hourlyCard.innerHTML = `
+      <div class="hourly_forecast_time_flex">
+        <div class="hourly_forecast_img_time">
+          <div class="hourly_forecast_img">
+            <img src="${iconPath}" alt="weather condition" />
+          </div>
+          <div class="time">
+            <h5>${timeLabel}</h5>
+          </div>
+        </div>
+        <div class="degree">
+          <p>${displayTemp}&deg;</p>
+        </div>
+      </div>
+    
+    `;
+    hourlyCardsContainer.appendChild(hourlyCard);
+  });
+
+
+};
+
+
+const renderHourlyForecastForDay = (weatherData, targetDayName) => {
+  const hourlyCardsContainer = document.querySelector("#hourly_cards_container");
+  if (!hourlyCardsContainer || !weatherData?.hourly) return;
+
+  hourlyCardsContainer.innerHTML = "";
+
+  const times = weatherData.hourly.time || [];
+  const temps = weatherData.hourly.temperature_2m || [];
+  const weatherCodes = weatherData.hourly.weathercode || weatherData.hourly.weather_code || [];
+
+  // 1. Filter indices matching targetDayName (e.g., "Monday")
+  const matchingIndices = times
+    .map((timeStr, index) => {
+      const date = new Date(timeStr);
+      // Format to full weekday name in local system language
+      const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
+      return dayName.toLowerCase() === targetDayName.toLowerCase() ? index : -1;
+    })
+    .filter((index) => index !== -1)
+    .slice(0, 8);
+
+  if (matchingIndices.length === 0) {
+    hourlyCardsContainer.innerHTML = `<p class="no-data">No hourly data available for ${targetDayName}.</p>`;
+    return;
+  }
+
+  // 2. Render cards for the matching indices
+  matchingIndices.forEach((dataIndex, idx) => {
+    const timeStr = times[dataIndex];
+    const rawTemp = temps[dataIndex];
+    const code = weatherCodes[dataIndex];
+
+    const displayTemp =
+      currentUnits.temp === "fahrenheit"
+        ? Math.round((rawTemp * 9) / 5 + 32)
+        : Math.round(rawTemp);
+
+    const hourDate = new Date(timeStr);
+    const formattedTime = hourDate.toLocaleTimeString([], {
+      hour: "numeric",
+      hour12: true
+    });
+
+    const iconPath = getWeatherIconPath(code);
+
+    const hourlyCard = document.createElement("div");
+    hourlyCard.className = "hourly_forecast_time";
+    hourlyCard.innerHTML = `
+      <div class="hourly_forecast_time_flex">
+        <div class="hourly_forecast_img_time">
+          <div class="hourly_forecast_img">
+            <img src="${iconPath}" alt="weather condition" />
+          </div>
+          <div class="time">
+            <h5>${formattedTime}</h5>
+          </div>
+        </div>
+        <div class="degree">
+          <p>${displayTemp}&deg;</p>
+        </div>
+      </div>
+    `;
+
+    hourlyCardsContainer.appendChild(hourlyCard);
+  });
+};
+
+
+const setupHourlyDropdown = () => {
+  const dropdownToggle = document.querySelector(".hourly-dropdown-toggle");
+  const dropdownMenu = document.querySelector(".hourly-dropdown-menu");
+  const dayTextSpan = document.querySelector(".day-text");
+  const weekdayButtons = document.querySelectorAll(".weekday-item");
+
+  if (!dropdownToggle || !dropdownMenu) return;
+
+  // Toggle dropdown visibility
+  dropdownToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    dropdownMenu.classList.toggle("is-visible");
+  });
+
+  // Close dropdown if user clicks outside
+  document.addEventListener("click", () => {
+    dropdownMenu.classList.remove("is-visible");
+  });
+
+  // Handle weekday button click
+  weekdayButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const selectedDay = btn.textContent.trim();
+
+      // Update button visual states
+      weekdayButtons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      // Update toggle text header
+      if (dayTextSpan) {
+        dayTextSpan.textContent = selectedDay;
+      }
+
+      dropdownMenu.classList.remove("is-visible");
+
+      // Render hourly items for selected weekday
+      if (currentWeatherData) {
+        renderHourlyForecastForDay(currentWeatherData, selectedDay);
+      }
+    });
+  });
+};
+
+setupHourlyDropdown();
+
+
+const updateWeekdayDropdownButtons = (weatherData) => {
+  const weekdayButtons = document.querySelectorAll(".weekday-item");
+  const dayTextSpan = document.querySelector(".day-text");
+  const times = weatherData?.hourly?.time || [];
+
+  if (!times.length || !weekdayButtons.length) return;
+
+  // Extract unique weekday names from API response times
+  const uniqueDays = [];
+  times.forEach((t) => {
+    const dayName = new Date(t).toLocaleDateString("en-US", { weekday: "long" });
+    if (!uniqueDays.includes(dayName)) {
+      uniqueDays.push(dayName);
+    }
+  });
+
+  // Update button text and match active state
+  weekdayButtons.forEach((btn, idx) => {
+    if (uniqueDays[idx]) {
+      btn.textContent = uniqueDays[idx];
+      btn.style.display = "block";
+    } else {
+      btn.style.display = "none"; // Hide unused day buttons
+    }
+  });
+
+  // Default dropdown toggle label to today's weekday
+  if (dayTextSpan && uniqueDays[0]) {
+    dayTextSpan.textContent = uniqueDays[0];
+  }
+};
+
+
+
+
+
+
+
+
+
+
 // GLOBAL UNITS STATE OBEJCT
+
+
+
+
 
 const currentUnits = {
   temp: 'celsius',
@@ -500,22 +755,6 @@ const setupUnitsDropdown = () => {
 
 
       if (currentWeatherData) {
-        const parts = searchInput.value.split(',');
-
-        let cityName = '';
-        if (parts[0]) {
-          cityName = parts[0].trim();
-        } else {
-          cityName = '';
-        }
-
-        let country = '';
-        if (parts[1]) {
-          country = parts[1].trim();
-        } else {
-          country = '';
-        }
-
         renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
         renderDailyForecast(currentWeatherData);
       }
@@ -549,22 +788,6 @@ const setupUnitsDropdown = () => {
     updateMasterButtonText();
 
     if (currentWeatherData) {
-      const parts = searchInput.value.split(',');
-
-      let cityName = '';
-      if (parts[0]) {
-        cityName = parts[0].trim();
-      } else {
-        cityName = '';
-      }
-
-      let country = '';
-      if (parts[1]) {
-        country = parts[1].trim();
-      } else {
-        country = '';
-      }
-
       renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
       renderDailyForecast(currentWeatherData);
     }

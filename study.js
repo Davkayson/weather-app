@@ -291,78 +291,173 @@ const formatPercip = (mmPrecip) => {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+function renderHourlyForecast(weatherData) {
+  const hourlyCardsContainer = document.querySelector('#hourly_cards_container')
+
+  if (hourlyCardsContainer === null || weatherData === undefined || weatherData.hourly === undefined) {
+    return;
+  }
+
+  hourlyCardsContainer.innerHTML = '';
+
+  // Extract arrays from Open-Meteo data structure
+
+  const times = weatherData.hourly.time;
+  const temps = weatherData.hourly.temperature_2m;
+  const weatherCodes = weatherData.hourly.weather_code;
+
+  //Get the current data and time
+  const now = new Date();
+  // Intialize a variable to store the starting array index
+  let startIndex = 0;
+  // loop through Open-Meteo's time array to find a match
+
+  for (let i = 0; i < times.length; i++) {
+    const cardDate = new Date(times[i]);
+    if (cardDate >= now || cardDate.getHours() === now.getHours()) {
+      startIndex = i;
+      break;
+    }
+  }
+
+  // 6. Slice the next 8 items starting from the current hour
+  const upcomingTimes = times.slice(startIndex, startIndex + 8);
+
+  // 7. Loop through the sliced array using explicit forEach syntax
+  upcomingTimes.forEach(function (timeStr, idx) {
+    const dataIndex = startIndex + idx;
+    const rawTemp = temps[dataIndex];
+    const code = weatherCodes[dataIndex];
+
+    // Temperature unit conversion
+    // let displayTemp = 0;
+    // if (currentUnits.temp === "fahrenheit") {
+    //   displayTemp = Math.round((rawTemp * 9) / 5 + 32);
+    // } else {
+    //   displayTemp = Math.round(rawTemp);
+    // }
+
+    const displayTemp = formatTemp(rawTemp, currentUnits.temp);
+
+    // Format ISO string to readable 12-hour time (e.g., "3 PM")
+    const hourDate = new Date(timeStr);
+    const formattedTime = hourDate.toLocaleTimeString([], {
+      hour: "numeric",
+      hour12: true
+    });
+
+    const iconPath = getWeatherIconPath(code);
+
+    // Determine card label
+    let timeLabel = "";
+    if (idx === 0) {
+      timeLabel = "Now";
+    } else {
+      timeLabel = formattedTime;
+    }
+
+    // Create and insert card element
+    const hourlyCard = document.createElement("div");
+    hourlyCard.className = "hourly_forecast_time";
+    hourlyCard.innerHTML = `
+    <div class="hourly_forecast_time_flex">
+      <div class="hourly_forecast_img_time">
+        <div class="hourly_forecast_img">
+          <img src="${iconPath}" alt="weather condition" />
+        </div>
+        <div class="time">
+          <h5>${timeLabel}</h5>
+        </div>
+      </div>
+      <div class="degree">
+        <p>${displayTemp}&deg;</p>
+      </div>
+    </div>
+  `;
+
+    hourlyCardsContainer.appendChild(hourlyCard);
+  });
+
+}
+
+function renderHourlyForecastForDay(weatherData, targetDateStr, currentUnits) {
+  const hourlyCardsContainer = document.getElementById("hourly_cards_container");
+  hourlyCardsContainer.innerHTML = "";
+
+  // Guard clause: ensure hourly weather data exists
+  if (!weatherData || !weatherData.hourly) {
+    return;
+  }
+
+  const times = weatherData.hourly.time;
+  const temps = weatherData.hourly.temperature_2m;
+  const weatherCodes = weatherData.hourly.weather_code;
+
+  let startIndex = -1;
+
+  // 1. Loop through all 168 hours to find the first hour matching the selected date
+  for (let i = 0; i < times.length; i++) {
+    // Extract just the date portion ("YYYY-MM-DD") from the ISO time string
+    const timeDatePart = times[i].split("T")[0];
+
+    if (timeDatePart === targetDateStr) {
+      startIndex = i;
+      break;
+    }
+  }
+
+  // Guard clause: if the selected date was not found in the array
+  if (startIndex === -1) {
+    return;
+  }
+
+  // 2. Slice 24 hours starting from the target day's midnight index
+  const dayTimes = times.slice(startIndex, startIndex + 24);
+
+  // 3. Loop through the 24 hours using explicit arrow function syntax
+  dayTimes.forEach((timeStr, idx) => {
+    const dataIndex = startIndex + idx;
+    const rawTemp = temps[dataIndex];
+    const code = weatherCodes[dataIndex];
+
+    // Temperature unit conversion using helper function
+    const displayTemp = convertTemp(rawTemp, currentUnits.temp);
+
+    // Format ISO string to 12-hour time (e.g., "3 PM" or "12 AM")
+    const hourDate = new Date(timeStr);
+    const formattedTime = hourDate.toLocaleTimeString([], {
+      hour: "numeric",
+      hour12: true
+    });
+
+    const iconPath = getWeatherIconPath(code);
+
+    // Create and insert card element using Template Literals
+    const hourlyCard = document.createElement("div");
+    hourlyCard.className = "hourly_forecast_time";
+    hourlyCard.innerHTML = `
+      <div class="hourly_forecast_time_flex">
+        <div class="hourly_forecast_img_time">
+          <div class="hourly_forecast_img">
+            <img src="${iconPath}" alt="weather condition" />
+          </div>
+          <div class="time">
+            <h5>${formattedTime}</h5>
+          </div>
+        </div>
+        <div class="degree">
+          <p>${displayTemp}&deg;</p>
+        </div>
+      </div>
+    `;
+
+    hourlyCardsContainer.appendChild(hourlyCard);
+  });
+}
+
+//Explain this code ! VERY IMPORTANT.
+
+.toLocaleTimeString([], {
 
 
 
