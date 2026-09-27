@@ -7,6 +7,7 @@ const hourlyDropDownContainer = document.querySelector('.hourly-dropdown');
 const hourlyDropDownBtn = document.querySelector('.hourly-dropdown-toggle');
 const cityInput = document.getElementById('citySearchInput');
 const searchResults = document.getElementById('searchResults');
+const hourlyCardsContainer = document.getElementById("hourly_cards_container");
 // const hourlyCardsContainer = document.querySelector('#hourly_cards_container')
 // const dropdownToggle = document.querySelector(".hourly-dropdown-toggle")
 // const dropdownMenu = document.querySelector('.hourly-dropdown-menu');
@@ -476,49 +477,49 @@ const renderHourlyForecast = (weatherData) => {
 
 };
 
+function renderHourlyForecastForDay(weatherData, targetStr, currentUnits) {
+  hourlyCardsContainer.innerHTML = '';
 
-const renderHourlyForecastForDay = (weatherData, targetDayName) => {
-  const hourlyCardsContainer = document.querySelector("#hourly_cards_container");
-  if (!hourlyCardsContainer || !weatherData?.hourly) return;
-
-  hourlyCardsContainer.innerHTML = "";
-
-  const times = weatherData.hourly.time || [];
-  const temps = weatherData.hourly.temperature_2m || [];
-  const weatherCodes = weatherData.hourly.weathercode || weatherData.hourly.weather_code || [];
-
-  // 1. Filter indices matching targetDayName (e.g., "Monday")
-  const matchingIndices = times
-    .map((timeStr, index) => {
-      const date = new Date(timeStr);
-      // Format to full weekday name in local system language
-      const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
-      return dayName.toLowerCase() === targetDayName.toLowerCase() ? index : -1;
-    })
-    .filter((index) => index !== -1)
-    .slice(0, 8);
-
-  if (matchingIndices.length === 0) {
-    hourlyCardsContainer.innerHTML = `<p class="no-data">No hourly data available for ${targetDayName}.</p>`;
+  if (!weatherData || !weatherData.hourly) {
     return;
   }
 
-  // 2. Render cards for the matching indices
-  matchingIndices.forEach((dataIndex, idx) => {
-    const timeStr = times[dataIndex];
+  const times = weatherData.hourly.time;
+  const temps = weatherData.hourly.temperature_2m;
+  const weatherCodes = weatherData.hourly.weather_code;
+
+  let startIndex = -1;
+
+  for (let i = 0; i < times.length; i++) {
+    const timeDatePart = times[i].split('T')[0];
+
+    if (timeDatePart === targetDateStr) {
+      startIndex = i;
+      break;
+    }
+  }
+
+  if (startIndex === -1) {
+    return;
+  }
+
+  const dayTimes = times.slice(startIndex, startIndex + 24);
+
+  dayTimes.forEach((timeStr, idx) => {
+    const dataIndex = startIndex + idx;
     const rawTemp = temps[dataIndex];
     const code = weatherCodes[dataIndex];
 
-    const displayTemp =
-      currentUnits.temp === "fahrenheit"
-        ? Math.round((rawTemp * 9) / 5 + 32)
-        : Math.round(rawTemp);
+    const displayTemp = formatTemp(rawTemp, currentUnits.temp)
+
+    // Format ISO string to 12-hour time (e.g., "3pm or 12am")
 
     const hourDate = new Date(timeStr);
-    const formattedTime = hourDate.toLocaleTimeString([], {
-      hour: "numeric",
+    hourDate.toLocaleDateString([], {
+      hour: 'numeric',
       hour12: true
     });
+
 
     const iconPath = getWeatherIconPath(code);
 
@@ -542,7 +543,75 @@ const renderHourlyForecastForDay = (weatherData, targetDayName) => {
 
     hourlyCardsContainer.appendChild(hourlyCard);
   });
-};
+}
+
+
+// const renderHourlyForecastForDay = (weatherData, targetDayName) => {
+//   const hourlyCardsContainer = document.querySelector("#hourly_cards_container");
+//   if (!hourlyCardsContainer || !weatherData?.hourly) return;
+
+//   hourlyCardsContainer.innerHTML = "";
+
+//   const times = weatherData.hourly.time || [];
+//   const temps = weatherData.hourly.temperature_2m || [];
+//   const weatherCodes = weatherData.hourly.weathercode || weatherData.hourly.weather_code || [];
+
+//   // 1. Filter indices matching targetDayName (e.g., "Monday")
+//   const matchingIndices = times
+//     .map((timeStr, index) => {
+//       const date = new Date(timeStr);
+//       // Format to full weekday name in local system language
+//       const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
+//       return dayName.toLowerCase() === targetDayName.toLowerCase() ? index : -1;
+//     })
+//     .filter((index) => index !== -1)
+//     .slice(0, 8);
+
+//   if (matchingIndices.length === 0) {
+//     hourlyCardsContainer.innerHTML = `<p class="no-data">No hourly data available for ${targetDayName}.</p>`;
+//     return;
+//   }
+
+//   // 2. Render cards for the matching indices
+//   matchingIndices.forEach((dataIndex, idx) => {
+//     const timeStr = times[dataIndex];
+//     const rawTemp = temps[dataIndex];
+//     const code = weatherCodes[dataIndex];
+
+//     const displayTemp =
+//       currentUnits.temp === "fahrenheit"
+//         ? Math.round((rawTemp * 9) / 5 + 32)
+//         : Math.round(rawTemp);
+
+//     const hourDate = new Date(timeStr);
+//     const formattedTime = hourDate.toLocaleTimeString([], {
+//       hour: "numeric",
+//       hour12: true
+//     });
+
+//     const iconPath = getWeatherIconPath(code);
+
+//     const hourlyCard = document.createElement("div");
+//     hourlyCard.className = "hourly_forecast_time";
+//     hourlyCard.innerHTML = `
+//       <div class="hourly_forecast_time_flex">
+//         <div class="hourly_forecast_img_time">
+//           <div class="hourly_forecast_img">
+//             <img src="${iconPath}" alt="weather condition" />
+//           </div>
+//           <div class="time">
+//             <h5>${formattedTime}</h5>
+//           </div>
+//         </div>
+//         <div class="degree">
+//           <p>${displayTemp}&deg;</p>
+//         </div>
+//       </div>
+//     `;
+
+//     hourlyCardsContainer.appendChild(hourlyCard);
+//   });
+// };
 
 
 const setupHourlyDropdown = () => {
