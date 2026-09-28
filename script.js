@@ -1,4 +1,3 @@
-// Stores the raw weather data returned from the Open-Meteo API in browser memory. Having this globally available lets you re-render the screen instantly when changing units (°C to °F, km/h to mph) without needing to make another network request.
 const searchInput = document.querySelector('.input-text');
 const searchDropdown = document.querySelector('.search-dropdown');
 const dropdownContainer = document.querySelector('.units-dropdown');
@@ -7,16 +6,22 @@ const hourlyDropDownContainer = document.querySelector('.hourly-dropdown');
 const hourlyDropDownBtn = document.querySelector('.hourly-dropdown-toggle');
 const cityInput = document.getElementById('citySearchInput');
 const searchResults = document.getElementById('searchResults');
-const hourlyCardsContainer = document.getElementById("hourly_cards_container");
-// const hourlyCardsContainer = document.querySelector('#hourly_cards_container')
-// const dropdownToggle = document.querySelector(".hourly-dropdown-toggle")
-// const dropdownMenu = document.querySelector('.hourly-dropdown-menu');
-// const dayTextSpan = document.querySelector('.day-text');
-// const weekdayButtons = document.querySelector('.weekday-item');
+const hourlyCardsContainer = document.querySelector('#hourly_cards_container')
+const dropdownToggle = document.querySelector(".hourly-dropdown-toggle")
+const dropdownMenu = document.querySelector('.hourly-dropdown-menu');
+const dayTextSpan = document.querySelector('.day-text');
+const weekdayButtons = document.querySelector('.weekday-item');
 
 let currentWeatherData = null;
 let activeCityName = '';
 let activeCountry = '';
+
+
+const currentUnits = {
+  temp: 'celsius',
+  speed: 'kmh',
+  precip: 'mm'
+};
 
 const isEmpty = (value) => {
   if (typeof value === 'string') {
@@ -34,7 +39,6 @@ searchInput.addEventListener('input', (e) => {
   }
 });
 
-// close searchDropdown when we click anywhere on the webpage.
 document.addEventListener('click', (e) => {
   if (e.target !== searchInput) {
     searchDropdown.classList.remove('is-visible');
@@ -100,13 +104,11 @@ async function getCoordinates(cityName) {
       return [];
     }
 
-    // Create an empty array to hold cleaned locations
     const cleanCities = [];
 
-    // loop throught each item in data.results
 
     for (let i = 0; i < data.results.length; i++) {
-      const city = data.results[i] // Access current item by index.
+      const city = data.results[i]
 
       // push a cleaned object into our new array.
 
@@ -129,7 +131,6 @@ async function getCoordinates(cityName) {
 
 
 async function getWeatherData(lat, lon) {
-  // This function takes the exact lat & lon of a chosen city and request the full weather dataset( current metrics, hourly forecast, and daily forecast).
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,precipitation,weather_code,relative_humidity_2m,wind_speed_10m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
 
@@ -144,11 +145,102 @@ async function getWeatherData(lat, lon) {
   }
 }
 
+const searchBtn = document.querySelector("#search_btn");
 
-// scope variable to track our debounce timer.
+searchBtn.addEventListener('click', async () => {
+  const query = searchInput.value.trim();
+
+  if (!query) {
+    return;
+  }
+
+  try {
+    const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`;
+    const geoResponse = await fetch(geoUrl);
+    const geoData = await geoResponse.json();
+
+    if (!geoData.results || geoData.results.length === 0) {
+      alert("City not found. Please try another location.");
+      return;
+    }
+
+    const { latitude, longitude, name, country } = geoData.results[0];
+
+    activeCityName = name;
+    activeCountry = country || "";
+
+    currentWeatherData = await getWeatherData(latitude, longitude);
+
+    if (searchDropdown) {
+      searchDropdown.classList.remove('is-visible')
+      searchDropdown.innerHTML = '';
+    }
+
+
+    if (currentWeatherData) {
+      renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
+      renderDailyForecast(currentWeatherData);
+      renderHourlyForecast(currentWeatherData);
+      updateWeekdayDropdownButtons(currentWeatherData);
+      setupHourlyDropdown();
+    }
+
+  } catch (error) {
+    console.error('Error executing search via button click:', error)
+  }
+
+})
+
+searchInput.addEventListener("keydown", async (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault(); // Prevents page refresh if inside a <form>
+
+    const query = searchInput.value.trim();
+    if (!query) return;
+
+    try {
+      // 1. Fetch array of locations using your getCoordinates function
+      const locations = await getCoordinates(query);
+
+      if (!locations || locations.length === 0) {
+        alert("No matching cities found. Please try another search.");
+        return;
+      }
+
+      // 2. Pick the top result from cleanCities array
+      const bestMatch = locations[0];
+      const { latitude, longitude, name, country } = bestMatch;
+
+      activeCityName = name;
+      activeCountry = country || "";
+
+      searchInput.value = country ? `${name}, ${country}` : name;
+
+      if (searchDropdown) {
+        searchDropdown.classList.remove("is-visible");
+        searchDropdown.innerHTML = "";
+      }
+
+      // 3. Fetch weather using top result coordinates
+      currentWeatherData = await getWeatherData(latitude, longitude);
+
+      if (currentWeatherData) {
+        renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
+        renderDailyForecast(currentWeatherData);
+        renderHourlyForecast(currentWeatherData);
+        updateWeekdayDropdownButtons(currentWeatherData);
+        setupHourlyDropdown();
+      }
+    } catch (error) {
+      console.error("Error executing Enter key search:", error);
+    }
+  }
+});
+
+
+
 let debounceTimer;
 
-// attaching an input event listener to our search bar.
 searchInput.addEventListener('input', (e) => {
   const value = e.target.value.trim();
 
@@ -162,7 +254,6 @@ searchInput.addEventListener('input', (e) => {
     return;
   }
 
-  // 2. Show loading state inside the dropdown.
   searchDropdown.classList.add("is-visible");
   searchDropdown.innerHTML = `<p class="dropdown-status">Searching locations...</p>`;
 
@@ -239,10 +330,46 @@ searchDropdown.addEventListener('click', async (e) => {
   searchDropdown.classList.remove('is-visible');
   searchDropdown.innerHTML = '';
   currentWeatherData = await getWeatherData(lat, lon);
-  renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
-  renderDailyForecast(currentWeatherData);
-  renderHourlyForecast(currentWeatherData);
+  if (currentWeatherData) {
+    renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
+    renderDailyForecast(currentWeatherData);
+    renderHourlyForecast(currentWeatherData);
+    updateWeekdayDropdownButtons(currentWeatherData);
+    setupHourlyDropdown();
+  } else {
+    console.error("Failed to retrieve weather data from getWeatherData()");
+  }
+
 });
+
+
+// convert celsius to Fahrenheit if unit is imperial.
+
+const formatTemp = (celsiusTemp) => {
+  if (currentUnits.temp === 'fahrenheit') {
+    const fahrenheit = (celsiusTemp * 9) / 5 + 32;
+    return `${Math.round(fahrenheit)}°`;
+  }
+  return `${Math.round(celsiusTemp)}°`;
+}
+
+const formatSpeed = (kmhSpeed) => {
+  if (currentUnits.speed === 'mph') {
+    const mph = kmhSpeed * 0.621371;
+    return `${Math.round(mph)}mph`;
+  }
+  return `${Math.round(kmhSpeed)}km/h`;
+}
+
+const formatPrecip = (mmPrecip) => {
+  if (currentUnits.precip === 'inch') {
+    const inches = mmPrecip * 0.0393701;
+    return `${inches.toFixed(2)}in`;
+  }
+  return `${mmPrecip.toFixed(1)}mm`;
+}
+
+
 
 
 
@@ -422,10 +549,7 @@ const renderHourlyForecast = (weatherData) => {
       break;
     }
   }
-  // const currentHourIndex = times.findIndex((timeStr) => {
-  //   const cardDate = new Date(timeStr);
-  //   return cardDate >= now || cardDate.getHours() === now.getHours();
-  // });
+
 
   const upcomingTimes = times.slice(startIndex, startIndex + 8)
 
@@ -437,7 +561,7 @@ const renderHourlyForecast = (weatherData) => {
     const displayTemp = formatTemp(rawTemp, currentUnits.temp);
 
     const hourDate = new Date(timeStr);
-    const formattedTime = hourDate.toLocaleDateString([], {
+    const formattedTime = hourDate.toLocaleTimeString([], {
       hour: 'numeric',
       hour12: true
     })
@@ -446,11 +570,11 @@ const renderHourlyForecast = (weatherData) => {
 
     // Determine card Label
 
-    let timelabel = '';
-    if (idx === '0') {
-      timelabel = 'Now';
+    let timeLabel = '';
+    if (idx === 0) {
+      timeLabel = 'Now';
     } else {
-      timelabel = formattedTime;
+      timeLabel = formattedTime;
     }
 
     const hourlyCard = document.createElement('div');
@@ -466,7 +590,7 @@ const renderHourlyForecast = (weatherData) => {
           </div>
         </div>
         <div class="degree">
-          <p>${displayTemp}&deg;</p>
+          <p>${displayTemp}</p>
         </div>
       </div>
     
@@ -477,12 +601,16 @@ const renderHourlyForecast = (weatherData) => {
 
 };
 
-function renderHourlyForecastForDay(weatherData, targetStr, currentUnits) {
-  hourlyCardsContainer.innerHTML = '';
+function renderHourlyForecastForDay(weatherData, targetDateStr, currentUnits) {
+  const hourlyCardsContainer = document.querySelector("#hourly_cards_container");
 
-  if (!weatherData || !weatherData.hourly) {
+  if (!hourlyCardsContainer || !weatherData || !weatherData.hourly) {
     return;
   }
+
+  hourlyCardsContainer.innerHTML = '';
+
+
 
   const times = weatherData.hourly.time;
   const temps = weatherData.hourly.temperature_2m;
@@ -503,7 +631,7 @@ function renderHourlyForecastForDay(weatherData, targetStr, currentUnits) {
     return;
   }
 
-  const dayTimes = times.slice(startIndex, startIndex + 24);
+  const dayTimes = times.slice(startIndex, startIndex + 8);
 
   dayTimes.forEach((timeStr, idx) => {
     const dataIndex = startIndex + idx;
@@ -512,10 +640,9 @@ function renderHourlyForecastForDay(weatherData, targetStr, currentUnits) {
 
     const displayTemp = formatTemp(rawTemp, currentUnits.temp)
 
-    // Format ISO string to 12-hour time (e.g., "3pm or 12am")
 
     const hourDate = new Date(timeStr);
-    hourDate.toLocaleDateString([], {
+    const formattedTime = hourDate.toLocaleTimeString([], {
       hour: 'numeric',
       hour12: true
     });
@@ -529,14 +656,19 @@ function renderHourlyForecastForDay(weatherData, targetStr, currentUnits) {
       <div class="hourly_forecast_time_flex">
         <div class="hourly_forecast_img_time">
           <div class="hourly_forecast_img">
-            <img src="${iconPath}" alt="weather condition" />
+            <img
+              src="${iconPath}"
+              alt="partly-cloudy"
+            />
           </div>
+
           <div class="time">
             <h5>${formattedTime}</h5>
           </div>
         </div>
+
         <div class="degree">
-          <p>${displayTemp}&deg;</p>
+          <p>${displayTemp}</p>
         </div>
       </div>
     `;
@@ -545,73 +677,6 @@ function renderHourlyForecastForDay(weatherData, targetStr, currentUnits) {
   });
 }
 
-
-// const renderHourlyForecastForDay = (weatherData, targetDayName) => {
-//   const hourlyCardsContainer = document.querySelector("#hourly_cards_container");
-//   if (!hourlyCardsContainer || !weatherData?.hourly) return;
-
-//   hourlyCardsContainer.innerHTML = "";
-
-//   const times = weatherData.hourly.time || [];
-//   const temps = weatherData.hourly.temperature_2m || [];
-//   const weatherCodes = weatherData.hourly.weathercode || weatherData.hourly.weather_code || [];
-
-//   // 1. Filter indices matching targetDayName (e.g., "Monday")
-//   const matchingIndices = times
-//     .map((timeStr, index) => {
-//       const date = new Date(timeStr);
-//       // Format to full weekday name in local system language
-//       const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
-//       return dayName.toLowerCase() === targetDayName.toLowerCase() ? index : -1;
-//     })
-//     .filter((index) => index !== -1)
-//     .slice(0, 8);
-
-//   if (matchingIndices.length === 0) {
-//     hourlyCardsContainer.innerHTML = `<p class="no-data">No hourly data available for ${targetDayName}.</p>`;
-//     return;
-//   }
-
-//   // 2. Render cards for the matching indices
-//   matchingIndices.forEach((dataIndex, idx) => {
-//     const timeStr = times[dataIndex];
-//     const rawTemp = temps[dataIndex];
-//     const code = weatherCodes[dataIndex];
-
-//     const displayTemp =
-//       currentUnits.temp === "fahrenheit"
-//         ? Math.round((rawTemp * 9) / 5 + 32)
-//         : Math.round(rawTemp);
-
-//     const hourDate = new Date(timeStr);
-//     const formattedTime = hourDate.toLocaleTimeString([], {
-//       hour: "numeric",
-//       hour12: true
-//     });
-
-//     const iconPath = getWeatherIconPath(code);
-
-//     const hourlyCard = document.createElement("div");
-//     hourlyCard.className = "hourly_forecast_time";
-//     hourlyCard.innerHTML = `
-//       <div class="hourly_forecast_time_flex">
-//         <div class="hourly_forecast_img_time">
-//           <div class="hourly_forecast_img">
-//             <img src="${iconPath}" alt="weather condition" />
-//           </div>
-//           <div class="time">
-//             <h5>${formattedTime}</h5>
-//           </div>
-//         </div>
-//         <div class="degree">
-//           <p>${displayTemp}&deg;</p>
-//         </div>
-//       </div>
-//     `;
-
-//     hourlyCardsContainer.appendChild(hourlyCard);
-//   });
-// };
 
 
 const setupHourlyDropdown = () => {
@@ -633,31 +698,37 @@ const setupHourlyDropdown = () => {
     dropdownMenu.classList.remove("is-visible");
   });
 
-  // Handle weekday button click
-  weekdayButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const selectedDay = btn.textContent.trim();
 
-      // Update button visual states
-      weekdayButtons.forEach((b) => b.classList.remove("active"));
+
+  weekdayButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const selectedDay = btn.textContent.trim();
+      const targetDateStr = btn.dataset.date;
+
+      console.log("1. Clicked Button Text:", selectedDay);
+      console.log("2. Extracted dataset.date:", targetDateStr);
+      console.log("3. currentWeatherData in memory:", currentWeatherData);
+
+      weekdayButtons.forEach((b) => {
+        b.classList.remove("active")
+      });
       btn.classList.add("active");
 
-      // Update toggle text header
       if (dayTextSpan) {
         dayTextSpan.textContent = selectedDay;
       }
+      dropdownMenu.classList.remove('is-visible');
 
-      dropdownMenu.classList.remove("is-visible");
-
-      // Render hourly items for selected weekday
-      if (currentWeatherData) {
-        renderHourlyForecastForDay(currentWeatherData, selectedDay);
+      if (typeof currentWeatherData !== "undefined" && currentWeatherData && targetDateStr) {
+        renderHourlyForecastForDay(currentWeatherData, targetDateStr, currentUnits);
+      } else {
+        console.warn("RENDER BLOCKED: Missing currentWeatherData or targetDateStr");
       }
-    });
+    })
   });
 };
-
 setupHourlyDropdown();
+
 
 
 const updateWeekdayDropdownButtons = (weatherData) => {
@@ -670,75 +741,43 @@ const updateWeekdayDropdownButtons = (weatherData) => {
   // Extract unique weekday names from API response times
   const uniqueDays = [];
   times.forEach((t) => {
-    const dayName = new Date(t).toLocaleDateString("en-US", { weekday: "long" });
-    if (!uniqueDays.includes(dayName)) {
-      uniqueDays.push(dayName);
+
+    const isoDate = t.split("T")[0];
+
+    if (!uniqueDays.includes(isoDate)) {
+      uniqueDays.push(isoDate);
     }
   });
 
   // Update button text and match active state
   weekdayButtons.forEach((btn, idx) => {
-    if (uniqueDays[idx]) {
-      btn.textContent = uniqueDays[idx];
-      btn.style.display = "block";
+
+    const isoDate = uniqueDays[idx]
+    if (isoDate[idx]) {
+      const isoDate = uniqueDays[idx];
+      const dateObj = new Date(isoDate + "T00:00");
+      const dayName = dateObj.toLocaleDateString("en-us", {
+        weekday: "long"
+      })
+
+      btn.textContent = dayName;
+      btn.dataset.date = isoDate;
+      btn.style.display = 'block'
     } else {
-      btn.style.display = "none"; // Hide unused day buttons
+      btn.style.display = "none";
     }
   });
 
-  // Default dropdown toggle label to today's weekday
-  if (dayTextSpan && uniqueDays[0]) {
-    dayTextSpan.textContent = uniqueDays[0];
+
+  if (dayTextSpan && uniqueDays) {
+    const todayObj = new Date(uniqueDays[0] + "T00:00");
+    todayObj.toLocaleDateString("en-us", {
+      weekday: "long"
+    });
   }
 };
 
 
-
-
-
-
-
-
-
-
-// GLOBAL UNITS STATE OBEJCT
-
-
-
-
-
-const currentUnits = {
-  temp: 'celsius',
-  speed: 'kmh',
-  precip: 'mm'
-};
-
-
-// convert celsius to Fahrenheit if unit is imperial.
-
-const formatTemp = (celsiusTemp) => {
-  if (currentUnits.temp === 'fahrenheit') {
-    const fahrenheit = (celsiusTemp * 9) / 5 + 32;
-    return `${Math.round(fahrenheit)}°`;
-  }
-  return `${Math.round(celsiusTemp)}°`;
-}
-
-const formatSpeed = (kmhSpeed) => {
-  if (currentUnits.speed === 'mph') {
-    const mph = kmhSpeed * 0.621371;
-    return `${Math.round(mph)}mph`;
-  }
-  return `${Math.round(kmhSpeed)}km/h`;
-}
-
-const formatPrecip = (mmPrecip) => {
-  if (currentUnits.precip === 'inch') {
-    const inches = mmPrecip * 0.0393701;
-    return `${inches.toFixed(2)}in`;
-  }
-  return `${mmPrecip.toFixed(1)}mm`;
-}
 
 // WORKING ON THE CHECKMARK.
 
@@ -766,7 +805,6 @@ const updateDropdownCheckmarks = () => {
     }
   });
 };
-
 
 
 // THE MASTER TOGGLE BUTTON THAT CHANGES THE LABEL TEXT AND SI UNIT STATE
@@ -827,6 +865,15 @@ const setupUnitsDropdown = () => {
         renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
         renderDailyForecast(currentWeatherData);
       }
+
+      const activeDayBtn = document.querySelector('.weekday-item.active');
+
+      if (activeDayBtn && activeDayBtn.dataset.date) {
+        renderHourlyForecastForDay(currentWeatherData, activeDayBtn.dataset.date, currentUnits);
+      } else {
+        renderHourlyForecast(currentWeatherData);
+      }
+
     });
   }
 
@@ -860,6 +907,17 @@ const setupUnitsDropdown = () => {
       renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
       renderDailyForecast(currentWeatherData);
     }
+
+    const activeDayBtn = document.querySelector('.weekday-item.active');
+
+    if (activeDayBtn && activeDayBtn.dataset.date) {
+      renderHourlyForecastForDay(currentWeatherData, activeDayBtn.dataset.date, currentUnits);
+    } else {
+      renderHourlyForecast(currentWeatherData);
+    }
+
+
+
   });
 };
 

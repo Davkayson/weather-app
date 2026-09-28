@@ -421,7 +421,7 @@ function renderHourlyForecastForDay(weatherData, targetDateStr, currentUnits) {
     const code = weatherCodes[dataIndex];
 
     // Temperature unit conversion using helper function
-    const displayTemp = convertTemp(rawTemp, currentUnits.temp);
+    const displayTemp = formatTemp(rawTemp, currentUnits.temp);
 
     // Format ISO string to 12-hour time (e.g., "3 PM" or "12 AM")
     const hourDate = new Date(timeStr);
