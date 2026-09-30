@@ -111,6 +111,12 @@ header {
   gap: 0.5rem;
   border-radius: 0.3rem;
   cursor: pointer;
+  transition: all 0.5s ease;
+}
+
+.dropdown-toggle:hover,
+.dropdown-toggle:focus {
+  background-color: var(--Neutral-600);
 }
 
 .units-text {
@@ -437,6 +443,12 @@ input[type='search']::-webkit-search-cancel-button {
   font-size: 1.1rem;
   cursor: pointer;
   border-radius: 0.3rem;
+  transition: all 0.5s ease;
+}
+
+.search_button:hover,
+.search_button:focus {
+  background-color: var(--Blue-700);
 }
 
 .current_forecast {

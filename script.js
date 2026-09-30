@@ -15,8 +15,6 @@ const weekdayButtons = document.querySelector('.weekday-item');
 let currentWeatherData = null;
 let activeCityName = '';
 let activeCountry = '';
-
-
 const currentUnits = {
   temp: 'celsius',
   speed: 'kmh',
@@ -336,8 +334,6 @@ searchDropdown.addEventListener('click', async (e) => {
     renderHourlyForecast(currentWeatherData);
     updateWeekdayDropdownButtons(currentWeatherData);
     setupHourlyDropdown();
-  } else {
-    console.error("Failed to retrieve weather data from getWeatherData()");
   }
 
 });
@@ -705,10 +701,6 @@ const setupHourlyDropdown = () => {
       const selectedDay = btn.textContent.trim();
       const targetDateStr = btn.dataset.date;
 
-      console.log("1. Clicked Button Text:", selectedDay);
-      console.log("2. Extracted dataset.date:", targetDateStr);
-      console.log("3. currentWeatherData in memory:", currentWeatherData);
-
       weekdayButtons.forEach((b) => {
         b.classList.remove("active")
       });
@@ -721,8 +713,6 @@ const setupHourlyDropdown = () => {
 
       if (typeof currentWeatherData !== "undefined" && currentWeatherData && targetDateStr) {
         renderHourlyForecastForDay(currentWeatherData, targetDateStr, currentUnits);
-      } else {
-        console.warn("RENDER BLOCKED: Missing currentWeatherData or targetDateStr");
       }
     })
   });
