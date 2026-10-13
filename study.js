@@ -455,12 +455,9 @@ function renderHourlyForecastForDay(weatherData, targetDateStr, currentUnits) {
   });
 }
 
-//Explain this code ! VERY IMPORTANT.
-
-.toLocaleTimeString([], {
 
 
-  if(!hourlyCardsContainer || !weatherData?.hourly) return;
+if (!hourlyCardsContainer || !weatherData?.hourly) return;
 
 hourlyCardsContainer.innerHTML = "";
 

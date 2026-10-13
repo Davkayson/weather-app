@@ -3,14 +3,18 @@ const searchDropdown = document.querySelector('.search-dropdown');
 const dropdownContainer = document.querySelector('.units-dropdown');
 const dropdownBtn = document.querySelector('.dropdown-toggle');
 const hourlyDropDownContainer = document.querySelector('.hourly-dropdown');
-const hourlyDropDownBtn = document.querySelector('.hourly-dropdown-toggle');
+// const hourlyDropDownBtn = document.querySelector('.hourly-dropdown-toggle');
 const cityInput = document.getElementById('citySearchInput');
 const searchResults = document.getElementById('searchResults');
 const hourlyCardsContainer = document.querySelector('#hourly_cards_container')
 const dropdownToggle = document.querySelector(".hourly-dropdown-toggle")
 const dropdownMenu = document.querySelector('.hourly-dropdown-menu');
 const dayTextSpan = document.querySelector('.day-text');
-const weekdayButtons = document.querySelector('.weekday-item');
+const weekdayButtons = document.querySelectorAll('.weekday-item');
+// const dropdownToggle = document.querySelector(".hourly-dropdown-toggle");
+// const dropdownMenu = document.querySelector(".hourly-dropdown-menu");
+// const dayTextSpan = document.querySelector(".day-text");
+// const weekdayButtons = document.querySelectorAll(".weekday-item");
 
 let currentWeatherData = null;
 let activeCityName = '';
@@ -158,7 +162,6 @@ searchBtn.addEventListener('click', async () => {
     const geoData = await geoResponse.json();
 
     if (!geoData.results || geoData.results.length === 0) {
-      alert("City not found. Please try another location.");
       return;
     }
 
@@ -301,7 +304,7 @@ searchInput.addEventListener('input', (e) => {
   }, 500);
 });
 
-
+//clicking a city from the dropdown list
 searchDropdown.addEventListener('click', async (e) => {
   // Find the clicked item using event delegation
   const selectedItem = e.target.closest('.dropdown-item')
@@ -310,7 +313,7 @@ searchDropdown.addEventListener('click', async (e) => {
   if (!selectedItem) {
     return;
   }
-
+  // Extracting the stored coordinates and info from the dataset attributes.
   const lat = selectedItem.dataset.lat;
   const lon = selectedItem.dataset.lon;
   const cityName = selectedItem.dataset.name;
@@ -319,6 +322,7 @@ searchDropdown.addEventListener('click', async (e) => {
   activeCityName = cityName;
   activeCountry = country || '';
 
+  // updating the search box text to reflect the chosen city.
   if (country) {
     searchInput.value = `${cityName}, ${country}`;
   } else {
@@ -327,6 +331,8 @@ searchDropdown.addEventListener('click', async (e) => {
 
   searchDropdown.classList.remove('is-visible');
   searchDropdown.innerHTML = '';
+  // passing the extracted coordinates directly 
+  // the coordinate lat & lon is passed inside the getWeatherData function to retrieve the weatherData for the current, hourly and daily forecast.
   currentWeatherData = await getWeatherData(lat, lon);
   if (currentWeatherData) {
     renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
@@ -674,12 +680,12 @@ function renderHourlyForecastForDay(weatherData, targetDateStr, currentUnits) {
 }
 
 
-
+// setting up event listeners for the hourly dropdown menu.
 const setupHourlyDropdown = () => {
-  const dropdownToggle = document.querySelector(".hourly-dropdown-toggle");
-  const dropdownMenu = document.querySelector(".hourly-dropdown-menu");
-  const dayTextSpan = document.querySelector(".day-text");
-  const weekdayButtons = document.querySelectorAll(".weekday-item");
+  // const dropdownToggle = document.querySelector(".hourly-dropdown-toggle");
+  // const dropdownMenu = document.querySelector(".hourly-dropdown-menu");
+  // const dayTextSpan = document.querySelector(".day-text");
+  // const weekdayButtons = document.querySelectorAll(".weekday-item");
 
   if (!dropdownToggle || !dropdownMenu) return;
 
@@ -695,22 +701,27 @@ const setupHourlyDropdown = () => {
   });
 
 
-
+  // handle weekday button clicks
   weekdayButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
       const selectedDay = btn.textContent.trim();
+
+      // Extract stored ISO date string from the dataset.date
       const targetDateStr = btn.dataset.date;
 
+      // update button visual states
       weekdayButtons.forEach((b) => {
         b.classList.remove("active")
       });
       btn.classList.add("active");
 
+      // update the toggle text header
       if (dayTextSpan) {
         dayTextSpan.textContent = selectedDay;
       }
       dropdownMenu.classList.remove('is-visible');
 
+      // pass targetDateStr and currentUnits correctly
       if (typeof currentWeatherData !== "undefined" && currentWeatherData && targetDateStr) {
         renderHourlyForecastForDay(currentWeatherData, targetDateStr, currentUnits);
       }
@@ -720,7 +731,7 @@ const setupHourlyDropdown = () => {
 setupHourlyDropdown();
 
 
-
+// update dropdown button text and sttach ISO date strings to the dataset.date
 const updateWeekdayDropdownButtons = (weatherData) => {
   const weekdayButtons = document.querySelectorAll(".weekday-item");
   const dayTextSpan = document.querySelector(".day-text");
@@ -729,6 +740,7 @@ const updateWeekdayDropdownButtons = (weatherData) => {
   if (!times.length || !weekdayButtons.length) return;
 
   // Extract unique weekday names from API response times
+  // Extract unique ISO dates ("YYYY-MM-DD") from API times
   const uniqueDays = [];
   times.forEach((t) => {
 
@@ -740,28 +752,28 @@ const updateWeekdayDropdownButtons = (weatherData) => {
   });
 
   // Update button text and match active state
+  // set btn.dataset.date to ISO string for exact matching
   weekdayButtons.forEach((btn, idx) => {
 
     const isoDate = uniqueDays[idx]
-    if (isoDate[idx]) {
-      const isoDate = uniqueDays[idx];
+    if (isoDate) {
       const dateObj = new Date(isoDate + "T00:00");
       const dayName = dateObj.toLocaleDateString("en-us", {
         weekday: "long"
       })
 
       btn.textContent = dayName;
-      btn.dataset.date = isoDate;
+      btn.dataset.date = isoDate; // Stores "YYYY-MM-DD" on the element
       btn.style.display = 'block'
     } else {
       btn.style.display = "none";
     }
   });
 
-
-  if (dayTextSpan && uniqueDays) {
+  // Default dropdown toggle label to today's weekday
+  if (dayTextSpan && uniqueDays.length > 0) {
     const todayObj = new Date(uniqueDays[0] + "T00:00");
-    todayObj.toLocaleDateString("en-us", {
+    dayTextSpan.textContent = todayObj.toLocaleDateString("en-us", {
       weekday: "long"
     });
   }
