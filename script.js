@@ -1,3 +1,4 @@
+// let isPageDataLoading = false;
 const searchInput = document.querySelector('.input-text');
 const searchDropdown = document.querySelector('.search-dropdown');
 const dropdownContainer = document.querySelector('.units-dropdown');
@@ -108,12 +109,10 @@ async function getCoordinates(cityName) {
 
     const cleanCities = [];
 
-
     for (let i = 0; i < data.results.length; i++) {
       const city = data.results[i]
 
       // push a cleaned object into our new array.
-
       cleanCities.push({
         name: city.name,
         country: city.country || '',
@@ -124,29 +123,27 @@ async function getCoordinates(cityName) {
     }
     return cleanCities;
 
-
   } catch (error) {
     console.error('Geocoding failed:', error)
     return [];
   }
 }
 
-
 async function getWeatherData(lat, lon) {
   try {
+    // isPageDataLoading = true;
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,precipitation,weather_code,relative_humidity_2m,wind_speed_10m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
-
 
     const response = await fetch(url);
     const data = await response.json();
+    isPageDataLoading = false;
     return data;
-
   } catch (error) {
     console.error('Weather API Error:', error)
-    return null;
+    isPageDataLoading = false;
+    return error;
   }
 }
-
 const searchBtn = document.querySelector("#search_btn");
 
 searchBtn.addEventListener('click', async () => {
@@ -170,15 +167,39 @@ searchBtn.addEventListener('click', async () => {
     activeCityName = name;
     activeCountry = country || "";
 
+    // console.log({ isPageDataLoading })
+    // const currentWeatherContainer = document.querySelector('.current_forecast_text');
+    // if (isPageDataLoading && currentWeatherContainer) {
+    //   currentWeatherContainer.innerHTML = `
+    //   <div>
+    //     <p>Loading...</p>
+    //   </div>`
+    // }
+
+    const locationEl = document.getElementById('current_state-name');
+    const dateEl = document.getElementById('current_date');
+    const iconEl = document.getElementById('current_weather-icon')
+    const mainTempEl = document.getElementById('current_main-temp');
+
+
+    if (mainTempEl && iconEl && dateEl && locationEl) {
+      mainTempEl.textContent = 'Loading';
+      iconEl.style.display = 'none';
+      dateEl.textContent = 'Loading.....';
+      locationEl.textContent = 'Loading.....';
+    }
+
+
     currentWeatherData = await getWeatherData(latitude, longitude);
+
 
     if (searchDropdown) {
       searchDropdown.classList.remove('is-visible')
       searchDropdown.innerHTML = '';
     }
 
-
     if (currentWeatherData) {
+      console.log("3. Data exists, starting render...");
       renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
       renderDailyForecast(currentWeatherData);
       renderHourlyForecast(currentWeatherData);
@@ -333,14 +354,14 @@ searchDropdown.addEventListener('click', async (e) => {
   searchDropdown.innerHTML = '';
   // passing the extracted coordinates directly 
   // the coordinate lat & lon is passed inside the getWeatherData function to retrieve the weatherData for the current, hourly and daily forecast.
-  currentWeatherData = await getWeatherData(lat, lon);
-  if (currentWeatherData) {
-    renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
-    renderDailyForecast(currentWeatherData);
-    renderHourlyForecast(currentWeatherData);
-    updateWeekdayDropdownButtons(currentWeatherData);
-    setupHourlyDropdown();
-  }
+  // currentWeatherData = await getWeatherData(lat, lon);
+  // if (currentWeatherData) {
+  //   renderCurrentWeather(currentWeatherData, activeCityName, activeCountry);
+  //   renderDailyForecast(currentWeatherData);
+  //   renderHourlyForecast(currentWeatherData);
+  //   updateWeekdayDropdownButtons(currentWeatherData);
+  //   setupHourlyDropdown();
+  // }
 
 });
 
@@ -409,7 +430,6 @@ function renderCurrentWeather(weatherData, cityName, country) {
   }
 
 
-
   const dateEl = document.getElementById('current_date');
 
   if (dateEl) {
@@ -427,6 +447,7 @@ function renderCurrentWeather(weatherData, cityName, country) {
 
   if (iconEl) {
     iconEl.src = getWeatherIconPath(current.weather_code);
+    iconEl.style.display = 'block';
   }
 
   const mainTempEl = document.getElementById('current_main-temp');
@@ -931,6 +952,12 @@ if (document.readyState === "loading") {
   });
 } else {
   setupUnitsDropdown();
+}
+
+const cars = ['honda', 'toyota']
+for (let i = 0; i < cars.length; i++) {
+  const car = cars[i]
+  console.log(car);
 }
 
 
